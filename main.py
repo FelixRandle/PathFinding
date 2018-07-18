@@ -7,7 +7,7 @@ import tkinter.ttk as ttk
 
 main = tk.Tk()
 
-newMaze = maze.Maze(main, size = 6, canvasSize = 600)
+newMaze = maze.Maze(main, size = 25, canvasSize = 600)
 newMaze.canvas.pack()
 
 main.mainloop()
