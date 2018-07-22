@@ -9,17 +9,24 @@ class Application(tk.Tk):
 	def __init__(self, *args, **kwargs):
 		super().__init__()
 
+		self.screenSize = int(self.winfo_screenheight() * 0.7)
+		self.resizable(False, False)
+
 		self.frames = {}
 
 		frame = HomeScreen(self)
 		self.frames[HomeScreen] = frame
+		self.frames[SettingsMenu] = SettingsMenu(self)
+		self.frames[SettingsMenu].grid(row = 0, column = 0)
 		frame.grid(row = 0, column = 0)
 
 		self.changeFrame(HomeScreen)
 
 	def changeFrame(self, newFrame):
+		for frame in self.grid_slaves():
+			frame.grid_forget()
 		frame = self.frames[newFrame]
-		frame.tkraise()
+		frame.grid(row = 0, column = 0)
 
 class HomeScreen(tk.Frame):
 	def __init__(self, parent):
@@ -27,6 +34,7 @@ class HomeScreen(tk.Frame):
 		self.parent = parent
 
 		self.loadTopMenu()
+		self.loadMaze()
 
 
 	def loadTopMenu(self):
@@ -48,9 +56,28 @@ class HomeScreen(tk.Frame):
 
 		solverMenu = tk.Menu()
 		solverMenu.add_command(label = "Solve Current Maze", command = lambda: print("Solve Current Maze"))
-		solverMenu.add_command(label = "Edit Solve Settings", command = lambda: print("Edit Solve Settings"))
+		solverMenu.add_command(label = "Edit Solve Settings", command = lambda: self.parent.changeFrame(SettingsMenu))
 		menubar.add_cascade(label = "Solve", menu = solverMenu)
 
+	def loadMaze(self):
+		# TODO Load in maze using user defined settings.
+		# This includes creating maze then giving to generator before drawing.
+		# For now, no generation occurs.
+
+		self.maze = maze.Maze(self, canvasSize = self.parent.screenSize)
+		self.maze.canvas.grid(row = 0, column = 1)
+
+class SettingsMenu(tk.Frame):
+	def __init__(self, parent):
+		super().__init__()
+		self.parent = parent
+
+		self.buttonImage = tk.PhotoImage(file = "assets/home_button.png")
+
+		#xScale = self.buttonImage.width() / 
+
+		self.homeButton = tk.Button(self, image = self.buttonImage, command = lambda: parent.changeFrame(HomeScreen))
+		self.homeButton.grid(row = 0, column = 0)
 
 
 	
