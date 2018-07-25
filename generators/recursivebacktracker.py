@@ -1,0 +1,92 @@
+import random
+
+class Generator:
+	"""Generator class to generate a random maze given a maze object"""
+	def __init__(self, maze, seed = None):
+		"""
+		Arguments:
+			maze -- Maze object, should be all walls.
+			seed -- Seed for random module. Allows user to change the
+			random choices themselves.
+		"""
+		self.maze = maze
+		self.tileCount = self.maze.size ** 2
+		self.stack = []
+
+		random.seed(seed)
+
+		self.generate()
+
+	def generate(self):
+		"""
+		Implementation of a simple recursive backtracker algorithm
+		"""
+		# Put the starting tile at the top of the stack.
+		self.stack.insert(0, self.maze.tiles[1][1])
+		
+		# While there are items in the stack, the maze cannot be complete.
+		while len(self.stack) > 0:
+			# Set the current tile to the top of the stack.
+			self.currentTile = self.stack[0]
+
+			# Set the current tile as visited
+			self.currentTile.visited = True
+
+			# Get the unvisited neighbours of the current tile.
+			neighbours = self.getNeighbours()
+
+			# If the current tile has any unvisited neighbours, carry on.
+			if len(neighbours) > 0:
+				# Pick a random neighbour
+				newTile = random.choice(neighbours)
+
+				#Put the current tile in the stack.
+				self.stack.insert(0, self.currentTile)
+
+				# Put a path inbetween our current tile and the randomly chosen neighbour.
+				self.removeWall(self.currentTile, newTile)
+
+				# Change both our current tile and newly chosen tile to a path.
+				self.currentTile.changeType()
+				newTile.changeType()
+
+				# Put the new tile in the stack
+				self.stack.insert(0, newTile)
+
+			# If there are no unvisited neighbours, remove the top of the 
+			# stack to go backwards down the visited path.
+			else:
+				self.stack.pop(0)
+
+		# Set the top left and bottom right to the start and end respectively.	
+		self.maze.tiles[1][1].setStart()
+		self.maze.tiles[self.maze.size - 2][self.maze.size - 2].setEnd()
+
+	def getNeighbours(self):
+		"""
+		Internal method to get the currently unvisited neighbours of
+		the currently selected tile
+		"""
+		unvisited = []
+
+		# Loop through the current tiles neighbours and add those who are still
+		# unvisited to our array.
+		for tile in self.currentTile.neighbours:
+			if not tile.visited:
+				unvisited.append(tile)
+
+		return unvisited
+
+	def removeWall(self, tile1, tile2):
+		"""
+		Internal method to remove the wall between two tiles
+		TODO -- Possibly move this to our maze object so it can be accessed by all generators?
+		"""
+		if tile2.x ==  tile1.x:
+			xPos = tile2.x
+			yPos = tile2.y - int((tile2.y - tile1.y) / 2)
+		else:
+			yPos = tile2.y
+			xPos = tile2.x - int((tile2.x - tile1.x) / 2)
+		self.maze.tiles[xPos][yPos].setPath()
+		
