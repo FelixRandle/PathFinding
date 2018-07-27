@@ -151,11 +151,12 @@ class Maze:
 		Internal method for handling mouse click events.
 		This allows the user to 'draw' parts of the maze.
 		"""
-		listX = int(event.x / (self.canvasSize / self.size))
-		listY = int(event.y / (self.canvasSize / self.size))
-		try:
-			if listX >= 0 and listY >= 0:
-				self.tiles[listX][listY].setPath()
-		except IndexError:
-			pass
+		if self.parent.editMode.get():
+			listX = int(event.x / (self.canvasSize / self.size))
+			listY = int(event.y / (self.canvasSize / self.size))
+			try:
+				if listX >= 0 and listY >= 0:
+					self.tiles[listX][listY].setPath()
+			except IndexError:
+				pass
 			

@@ -59,8 +59,8 @@ class Generator:
 				self.stack.pop(0)
 
 		# Set the top left and bottom right to the start and end respectively.	
-		self.maze.tiles[1][1].setStart()
-		self.maze.tiles[self.maze.size - 2][self.maze.size - 2].setEnd()
+		self.maze.tiles[0][1].setStart()
+		self.maze.tiles[self.maze.size - 1][self.maze.size - 2].setEnd()
 
 	def getNeighbours(self):
 		"""
