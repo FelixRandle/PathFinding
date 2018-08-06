@@ -7,20 +7,25 @@ import tkinter.ttk as ttk
 import tkinter.messagebox as mb
 from fractions import Fraction
 
-# TOOD -- Add confirmation of reset for maze.
-
-
 class Application(tk.Tk):
 	def __init__(self, *args, **kwargs):
 		super().__init__()
 
+		# Set the title and icon of our application
 		self.title("PathFinding")
 		self.iconbitmap("assets/maze.ico")
 
+		# Calculate the size of our application based on the users screensize.
+		# We ensure this is odd as even numbers can cause rendering issues.
+		# We also stop the user from resizing the screen.
 		self.screenSize = int(self.winfo_screenheight() * 0.7)
+		if self.screenSize % 2 == 0:
+			self.screenSize += 1
+
 		self.minsize(width=self.screenSize - 5, height=self.screenSize - 5)
 		self.resizable(False, False)
 
+		# Create a dictionary for the screen tabs and populate it.
 		self.frames = {}
 
 		frame = HomeScreen(self)
@@ -29,9 +34,15 @@ class Application(tk.Tk):
 		self.frames[GenerationSettings].grid(row = 0, column = 0)
 		frame.grid(row = 0, column = 0)
 
+		# Load the homescreen
 		self.changeFrame(HomeScreen)
 
 	def changeFrame(self, newFrame):
+		"""
+		Internal method for changing the current frame shown on screen.
+		Arguments:
+		newFrame -- The frame to change to
+		"""
 		for frame in self.grid_slaves():
 			frame.grid_forget()
 		frame = self.frames[newFrame]
@@ -40,6 +51,7 @@ class Application(tk.Tk):
 class HomeScreen(tk.Frame):
 	def __init__(self, parent):
 		super().__init__()
+
 		self.parent = parent
 
 		self.loadTopMenu()
@@ -75,7 +87,7 @@ class HomeScreen(tk.Frame):
 
 	def loadMaze(self, size):
 		"""
-		Load in a blank Maze object
+		Load in a blank Maze object.
 		Arguments:
 		size -- The width and height of the new Maze
 		"""
@@ -87,8 +99,10 @@ class HomeScreen(tk.Frame):
 		self.loadMaze(size)
 
 	def generateMaze(self):
+		# Copy the GenerationSettings for easier referencing.
 		settings = self.parent.frames[GenerationSettings]
 
+		# Get the algorithm choice and load that algorithms Generator.
 		algorithm = settings.algorithmChoice.get()
 
 		if algorithm == "Recursive Backtracker":
@@ -97,11 +111,14 @@ class HomeScreen(tk.Frame):
 			print("No item selected")
 			return
 
+		# Load in the size of the maze from settings
 		size = int(settings.mazeSize.get())
 
+		# Ask the user for conformation to ensure they don't overwrite a base they're working on.
 		if not (mb.askyesno(self.parent.title, "Are you sure you want to generate a new maze?")):
 			return
 
+		# Reset the current maze and generate a new one from the loaded generator.
 		self.resetMaze(size)
 
 		Generator(self.maze)

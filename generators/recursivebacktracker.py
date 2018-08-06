@@ -22,7 +22,15 @@ class Generator:
 		Implementation of a simple recursive backtracker algorithm
 		"""
 		# Put the starting tile at the top of the stack.
-		self.stack.insert(0, self.maze.tiles[1][1])
+		size = self.maze.size
+		x = random.randint(1, size - 2)
+		if x % 2 == 0:
+			x += 1
+		y = random.randint(1, size)
+		if y % 2 == 0:
+			y += 1
+
+		self.stack.insert(0, self.maze.tiles[x][y])
 		
 		# While there are items in the stack, the maze cannot be complete.
 		while len(self.stack) > 0:

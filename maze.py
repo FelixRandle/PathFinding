@@ -120,7 +120,7 @@ class Maze:
 		self.size = size
 		self.canvasSize = canvasSize
 
-		self.canvas = tk.Canvas(self.parent, width = canvasSize, height = canvasSize, background = "blue", borderwidth = 0, highlightthickness = 0)
+		self.canvas = tk.Canvas(self.parent, width = canvasSize, height = canvasSize, borderwidth = 0, highlightthickness = 0)
 
 		self.tiles = [[Tile(self.canvas, self, x, y, self.canvasSize / self.size, tileTypes.WALL) for y in range(0, size)] for x in range(0, size)]
 		for x in range(0, self.size):
