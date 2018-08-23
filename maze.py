@@ -42,7 +42,7 @@ class Tile:
 		self.tileType = tileType
 		self.borderSize = int(self.size * border)
 
-		self.visited = False
+		self.visitCount = 0
 		self.neighbours = []
 		self.backgroundColour = tileColours[tileType][0]
 		self.colour = tileColours[tileType][1]
@@ -87,25 +87,39 @@ class Tile:
 		self.parent.itemconfig(self.canvasRect, fill = tileColours[self.tileType][1])
 		self.parent.itemconfig(self.canvasRect, outline = tileColours[self.tileType][0])
 
-	def setPath(self):
+	def setPath(self, travelled = False):
 		"""
 		Set the current tile to a PATH tile
 		"""
-		self.changeType(newType = tileTypes.PATH)
+		if not travelled:
+			self.changeType(newType = tileTypes.PATH)
+		else:
+			self.changeType(newType = tileTypes.VISITEDPATH)
 
 	def setStart(self):
 		"""
 		Set the current tile to a START tile.
-		TODO - Setting this will overwrite any current START tile.
 		"""
+		for tileX in self.maze.tiles:
+			for tile in tileX:
+				if tile.tileType == tileTypes.START:
+					tile.setPath()
+		self.maze.start = self
 		self.changeType(newType = tileTypes.START)
 
 	def setEnd(self):
 		"""
 		Set the current tile to an END tile.
-		TODO - Setting this will overwrite any current END tile.
 		"""
+		for tileX in self.maze.tiles:
+			for tile in tileX:
+				if tile.tileType == tileTypes.END:
+					tile.setPath()
+		self.maze.end = self
 		self.changeType(newType = tileTypes.END)
+
+	def getType(self):
+		return self.tileType
 
 class Maze:
 	"""Class used to hold maze information."""
@@ -119,6 +133,8 @@ class Maze:
 		self.parent = parent
 		self.size = size
 		self.canvasSize = canvasSize
+		self.start = None
+		self.end = None
 
 		self.canvas = tk.Canvas(self.parent, width = canvasSize, height = canvasSize, borderwidth = 0, highlightthickness = 0)
 
@@ -129,6 +145,8 @@ class Maze:
 
 		self.canvas.bind("<B1-Motion>", self.onMouseClick)
 		self.canvas.bind("<Button-1>", self.onMouseClick)
+		self.canvas.bind("<Shift-1>", self.setStart)
+		self.canvas.bind("<Shift-2>", self.setEnd)
 
 	def toFile(self, filePath):
 		"""
@@ -145,6 +163,26 @@ class Maze:
 			filePath -- Path to pull the maze from.
 		"""
 		pass
+
+	def setStart(self, event):
+		if self.parent.editMode.get():
+			listX = int(event.x / (self.canvasSize / self.size))
+			listY = int(event.y / (self.canvasSize / self.size))
+			try:
+				if listX >= 0 and listY >= 0:
+					self.tiles[listX][listY].setStart()
+			except IndexError:
+				pass
+
+	def setEnd(self, event):
+		if self.parent.editMode.get():
+			listX = int(event.x / (self.canvasSize / self.size))
+			listY = int(event.y / (self.canvasSize / self.size))
+			try:
+				if listX >= 0 and listY >= 0:
+					self.tiles[listX][listY].setEnd()
+			except IndexError:
+				pass
 
 	def onMouseClick(self, event):
 		"""

@@ -38,7 +38,8 @@ class Generator:
 			self.currentTile = self.stack[0]
 
 			# Set the current tile as visited
-			self.currentTile.visited = True
+			self.currentTile.visitCount += 1
+			print(self.currentTile.getType() == 1)
 
 			# Get the unvisited neighbours of the current tile.
 			neighbours = self.getNeighbours()
@@ -55,8 +56,8 @@ class Generator:
 				self.removeWall(self.currentTile, newTile)
 
 				# Change both our current tile and newly chosen tile to a path.
-				self.currentTile.changeType()
-				newTile.changeType()
+				self.currentTile.setPath()
+				newTile.setPath()
 
 				# Put the new tile in the stack
 				self.stack.insert(0, newTile)
@@ -66,6 +67,8 @@ class Generator:
 			else:
 				self.stack.pop(0)
 
+
+
 		# Set the top left and bottom right to the start and end respectively.	
 		self.maze.tiles[0][1].setStart()
 		self.maze.tiles[self.maze.size - 1][self.maze.size - 2].setEnd()
@@ -73,17 +76,18 @@ class Generator:
 	def getNeighbours(self):
 		"""
 		Internal method to get the currently unvisited neighbours of
-		the currently selected tile
+		the given tile
 		"""
 		unvisited = []
 
 		# Loop through the current tiles neighbours and add those who are still
 		# unvisited to our array.
 		for tile in self.currentTile.neighbours:
-			if not tile.visited:
+			if not tile.visitCount:
 				unvisited.append(tile)
 
 		return unvisited
+
 
 	def removeWall(self, tile1, tile2):
 		"""
@@ -97,4 +101,5 @@ class Generator:
 			yPos = tile2.y
 			xPos = tile2.x - int((tile2.x - tile1.x) / 2)
 		self.maze.tiles[xPos][yPos].setPath()
+
 		

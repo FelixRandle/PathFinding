@@ -114,7 +114,7 @@ class HomeScreen(tk.Frame):
 		# Load in the size of the maze from settings
 		size = int(settings.mazeSize.get())
 
-		# Ask the user for conformation to ensure they don't overwrite a base they're working on.
+		# Ask the user for conformation to ensure they don't overwrite a maze they're working on.
 		if not (mb.askyesno(self.parent.title, "Are you sure you want to generate a new maze?")):
 			return
 
