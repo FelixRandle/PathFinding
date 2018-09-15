@@ -6,15 +6,17 @@ class Generator:
 		"""
 		Arguments:
 			maze -- Maze object, should be all walls.
-			seed -- Seed for random module. Allows user to change the
-			random choices themselves.
+			seed -- Seed for random module.
 		"""
 		self.maze = maze
-		self.tileCount = self.maze.size ** 2
-		self.stack = []
 
+		# Create an empty list to be used as a stack.
+		self.stack = []
+		
+                # Set the random seed.
 		random.seed(seed)
 
+                # Generate our maze.
 		self.generate()
 
 	def generate(self):
@@ -22,6 +24,7 @@ class Generator:
 		Implementation of a simple recursive backtracker algorithm
 		"""
 		# Put the starting tile at the top of the stack.
+		# Pick a random x and y to start at. Ensuring that they are on odd rows/columns.
 		size = self.maze.size
 		x = random.randint(1, size - 2)
 		if x % 2 == 0:
@@ -39,8 +42,7 @@ class Generator:
 
 			# Set the current tile as visited
 			self.currentTile.visitCount += 1
-			print(self.currentTile.getType() == 1)
-
+			
 			# Get the unvisited neighbours of the current tile.
 			neighbours = self.getNeighbours()
 

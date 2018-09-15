@@ -1,14 +1,13 @@
 import solver
-from solver import Stack
 
-class mazeSolver(solver):
+class Solver(SolverTemplate):
 	def __init__(self):
 		super().__init__()
 
 		if self.autorun:
 			print("Autorunning now.")
 
-		self.stack = Stack()
+		self.stack = solver.Stack()
 		self.currentTile = None
 
 		self.start = self.maze.start

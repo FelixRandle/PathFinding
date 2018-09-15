@@ -1,6 +1,6 @@
 # Base solver class to import
 
-class Solver:
+class SolverTemplate:
 	def __init__(self, maze, autorun = False, delay = 0.1):
 		self.maze = maze
 		for tileX in self.maze.tiles:
