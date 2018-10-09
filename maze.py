@@ -4,6 +4,8 @@ import tkinter as tk
 import tkinter.ttk as ttk
 # Enum library used for different tileTypes.
 from enum import Enum
+# Pickle library used for serializing and deserializing maze objects.
+import pickle
 
 # Enum for the different tiles we can have in the maze.
 class tileTypes(Enum):
@@ -61,18 +63,19 @@ class Tile:
                         int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)), 
                         fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
 
-        def findNeighbours(self):
+        def findNeighbours(self, distance = 2):
                 """
                 Method for finding the current tiles neighbours.
                 Find those two away as all walls are placed on even coordinates
                 """
                 # List of relative neighbours. Paths are on alternating columns and rows so they must be 2 literal tiles away.
-                relativeNeighbours = [                          [0, 2],
-                                                        [-2, 0],       [2, 0],
-                                                                [0, -2]
-                                                        ]
+                relativeNeighbours = [               [0, distance],
+                                        [-distance, 0],           [distance, 0],
+                                                     [0, -distance]
+                ]
 
                 #Loop through the positions of neighbours if they are on the Maze
+                self.neighbours = []
                 for coords in relativeNeighbours:
                         if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
                                 self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
@@ -81,8 +84,16 @@ class Tile:
                 """
                 Method for translating our Tile object to a string so that it can be stored in a file.
                 """
-                # TODO
-                return ""
+                data = {
+                        "x": self.x,
+                        "y": self.y,
+                        "xPos": self.xPos,
+                        "yPos": self.yPos,
+                        "size": self.size,
+                        "borderSize": self.borderSize,
+                        "tileType": self.tileType,
+                        }
+                return data
 
         def fromString(self, source):
                 """
@@ -97,6 +108,8 @@ class Tile:
                 Arguments:
                         newType -- The new tileType that it should be changed to. Defaults to PATH.
                 """
+                
+                        
                 # Change the tileType of the tile.
                 self.tileType = newType
                 # Change the tile colours to reflect the newly desired tile.
@@ -119,7 +132,10 @@ class Tile:
                 """
                 Set the current tile to a VISITEDPATH tile.
                 """
-                self.changeType(newType = tileTypes.VISITEDPATH)
+                if self.tileType == (tileTypes.START or tileTypes.END):
+                        print("nah")
+                else:
+                        self.changeType(newType = tileTypes.VISITEDPATH)
 
         def setStart(self):
                 """
@@ -199,24 +215,55 @@ class Maze:
                 self.canvas.bind("<Shift-Button-1>", lambda event: self.setTile(event.x, event.y, tileTypes.START))
                 self.canvas.bind("<Shift-Button-3>", lambda event: self.setTile(event.x, event.y, tileTypes.END))
 
-        def toFile(self, filePath):
+        def toFile(self, filePath = "saves/save.p"):
                 """
                 Method for saving the current maze to a file.
                 Arguments:
                         filePath -- Path to where to save the file
                 """
-                # TODO
-                pass
-
+                # Save data about the maze that we need.
+                data = {
+                        "size": self.size,
+                        "tiles": {},
+                        }
+                # Loop through each row of tiles.
+                for x in range(0, len(self.tiles)):
+                        # Create an empty dictionary for each row of the maze.
+                        data["tiles"][x] = {}
+                        # Loop through each tile of the row.
+                        for y in range(0, len(self.tiles[x])):
+                                # Save the string version of the tile to the dictionary.
+                                data["tiles"][x][y] = self.tiles[x][y].toString()
+                # Dump the serialized data to the given filepath.
+                pickle.dump(data, open(filePath, "wb"))
+                
         def fromFile(self, filePath):
                 """
                 Method for loading a maze from a file.
                 Arguments:
                         filePath -- Path to pull the maze from.
                 """
-                # TODO
-                pass
-                     
+                # Load serialized data from file.
+                mazeObj = pickle.load(open(filePath, "rb"))
+                # Clear current tiles
+                self.tiles = []
+                # Delete all current objects drawn so we don't start to lag when loading multiple mazes.
+                self.canvas.delete("all")
+                # Loop through each list of tiles
+                for rowNo, row in mazeObj["tiles"].items():
+                        # Create an empty list for each list in the saved maze.
+                        self.tiles.append([])
+                        # Loop through each tile in the list
+                        for itemNo, item in row.items():
+                                # Collect the current item for easier referencing
+                                currentItem = mazeObj["tiles"][rowNo][itemNo]
+                                # Add a tile with the saved parameters to the list.
+                                self.tiles[rowNo].append(Tile(self.canvas, self,
+                                                currentItem["x"], currentItem["y"],
+                                                currentItem["size"],
+                                                currentItem["tileType"]))
+        
+
         def setTile(self, x, y, tileType = tileTypes.WALL):
                 """
                 Internal method for handling mouse click events.

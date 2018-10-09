@@ -1,13 +1,13 @@
-import solver
+from solvers.solver import SolverTemplate, Stack
 
 class Solver(SolverTemplate):
-	def __init__(self):
-		super().__init__()
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
 		if self.autorun:
-			print("Autorunning now.")
+			self.maze.parent.after(int(self.delay * 1000), self.step)
 
-		self.stack = solver.Stack()
+		self.stack = Stack()
 		self.currentTile = None
 
 		self.start = self.maze.start
@@ -25,6 +25,9 @@ class Solver(SolverTemplate):
 			print("REACHED END")
 			return True
 
+		print("step")
 		self.currentTile = self.stack.peek()
-		self.currentTile.setPath(travelled = True)
+		self.currentTile.setVisited()
+
+		self.maze.parent.after(int(self.delay * 1000), self.step)
 

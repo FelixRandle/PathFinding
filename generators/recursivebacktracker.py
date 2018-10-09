@@ -29,7 +29,7 @@ class Generator:
 		x = random.randint(1, size - 2)
 		if x % 2 == 0:
 			x += 1
-		y = random.randint(1, size)
+		y = random.randint(1, size - 2)
 		if y % 2 == 0:
 			y += 1
 

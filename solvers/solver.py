@@ -5,7 +5,12 @@ class SolverTemplate:
 		self.maze = maze
 		for tileX in self.maze.tiles:
 			for tile in tileX:
-				tile.visited = (False if tile.visited else True)
+				tile.visitCount = 0
+				tile.findNeighbours(distance = 1)
+				for neighbourTile in tile.neighbours:
+                                        if str(neighbourTile.tileType) == "tileTypes.WALL":
+                                                tile.neighbours.remove(neighbourTile)
+                                                
 		self.autorun = autorun
 		self.delay = delay
 
