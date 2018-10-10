@@ -268,7 +268,7 @@ class Application(tk.Tk):
                 autorun = settings.autoStepEnabled
 
                 try:
-                        delay = int(settings.autoStepDelay.get())
+                        delay = float(settings.autoStepDelay.get())
                 except ValueError:
                         mb.showerror(self.title, "Please enter a valid integer in the auto step delay")
                         return
@@ -456,3 +456,6 @@ class SolverSettings(SettingsMenu):
                 self.parent.solveMaze()
                 
                         
+class solverMenu(tk.Frame):
+        def __init__(self, parent):
+                super().__init__(parent)

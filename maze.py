@@ -18,9 +18,12 @@ class tileTypes(Enum):
 # Dictionary of colours to use for different tiles, background then foreground
 tileColours = { tileTypes.WALL: ["black", "black"],
                 tileTypes.PATH: ["light grey", "white"],
-                tileTypes.VISITEDPATH: ["light grey", "purple"],
                 tileTypes.START: ["green", "light green"],
-                tileTypes.END: ["red", "pink"]
+                tileTypes.END: ["red", "pink"],
+                tileTypes.VISITEDPATH: [["light grey", "#2376fc"],
+                                        ["light grey", "#0048bc"],
+                                        ["#FF0000", "#FF0000"]
+                                        ],
                 }
 
 class Tile:
@@ -63,7 +66,7 @@ class Tile:
                         int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)), 
                         fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
 
-        def findNeighbours(self, distance = 2):
+        def findNeighbours(self, distance = 2, blockVisited = False, blockWalls = False):
                 """
                 Method for finding the current tiles neighbours.
                 Find those two away as all walls are placed on even coordinates
@@ -76,9 +79,21 @@ class Tile:
 
                 #Loop through the positions of neighbours if they are on the Maze
                 self.neighbours = []
+                print(self.x, self.y)
                 for coords in relativeNeighbours:
                         if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
-                                self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
+                            if (blockVisited and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].visitCount < 1) or (not blockVisited):
+                                if (blockWalls and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].tileType != tileTypes.WALL) or (not blockWalls):
+                                    self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
+                                else:
+                                    print("blocked because wall")
+
+                            else:
+                                print("blocked because visited")
+                        else:
+                            print("blocked because not in maze")
+
+                return self.neighbours
                         
         def toString(self):
                 """
@@ -113,8 +128,15 @@ class Tile:
                 # Change the tileType of the tile.
                 self.tileType = newType
                 # Change the tile colours to reflect the newly desired tile.
-                self.parent.itemconfig(self.canvasRect, fill = tileColours[self.tileType][1])
-                self.parent.itemconfig(self.canvasRect, outline = tileColours[self.tileType][0])
+                if newType == tileTypes.VISITEDPATH:
+                    fill = tileColours[self.tileType][self.visitCount][1]
+                    outline = tileColours[self.tileType][self.visitCount][0]
+                else:
+                    fill = tileColours[self.tileType][1]
+                    outline = tileColours[self.tileType][0]
+
+                self.parent.itemconfig(self.canvasRect, fill = fill)
+                self.parent.itemconfig(self.canvasRect, outline = outline)
 
         def setWall(self):
                 """
@@ -132,10 +154,13 @@ class Tile:
                 """
                 Set the current tile to a VISITEDPATH tile.
                 """
+
                 if self.tileType == (tileTypes.START or tileTypes.END):
                         print("nah")
                 else:
                         self.changeType(newType = tileTypes.VISITEDPATH)
+
+                self.visitCount += 1
 
         def setStart(self):
                 """

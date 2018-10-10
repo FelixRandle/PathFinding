@@ -1,4 +1,6 @@
 from solvers.solver import SolverTemplate, Stack
+import random
+
 
 class Solver(SolverTemplate):
 	def __init__(self, *args, **kwargs):
@@ -8,13 +10,14 @@ class Solver(SolverTemplate):
 			self.maze.parent.after(int(self.delay * 1000), self.step)
 
 		self.stack = Stack()
-		self.currentTile = None
 
 		self.start = self.maze.start
 		self.end = self.maze.end
 
 		if (self.start == None) or (self.end == None):
 			print("NO START OR END FOUND WTF WHY")
+
+		self.currentTile = self.start
 
 		self.stack.push(self.start)
 
@@ -25,9 +28,18 @@ class Solver(SolverTemplate):
 			print("REACHED END")
 			return True
 
-		print("step")
-		self.currentTile = self.stack.peek()
+		try:
+			self.currentTile = random.choice(self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True))
+		except IndexError:
+			self.currentTile.setVisited()
+			self.currentTile = self.stack.pop()
+			self.maze.parent.after(int(self.delay * 1000), self.step)
+			return
+
+
 		self.currentTile.setVisited()
+
+		self.stack.push(self.currentTile)
 
 		self.maze.parent.after(int(self.delay * 1000), self.step)
 

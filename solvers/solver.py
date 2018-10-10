@@ -6,11 +6,7 @@ class SolverTemplate:
 		for tileX in self.maze.tiles:
 			for tile in tileX:
 				tile.visitCount = 0
-				tile.findNeighbours(distance = 1)
-				for neighbourTile in tile.neighbours:
-                                        if str(neighbourTile.tileType) == "tileTypes.WALL":
-                                                tile.neighbours.remove(neighbourTile)
-                                                
+												
 		self.autorun = autorun
 		self.delay = delay
 
@@ -21,20 +17,20 @@ class SolverTemplate:
 		print("Current Solver not functional. Please ensure that your stepping function is called 'step' so it overrides the base function.")
 
 class Stack:
-     def __init__(self):
-         self.items = []
+	 def __init__(self):
+		 self.items = []
 
-     def isEmpty(self):
-         return self.items == []
+	 def isEmpty(self):
+		 return self.items == []
 
-     def push(self, item):
-         self.items.append(item)
+	 def push(self, item):
+		 self.items.append(item)
 
-     def pop(self):
-         return self.items.pop()
+	 def pop(self):
+		 return self.items.pop()
 
-     def peek(self):
-         return self.items[len(self.items)-1]
+	 def peek(self):
+		 return self.items[len(self.items)-1]
 
-     def size(self):
-         return len(self.items)
+	 def size(self):
+		 return len(self.items)
