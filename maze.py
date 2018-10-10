@@ -12,6 +12,7 @@ class tileTypes(Enum):
         WALL = 0
         PATH = 1
         VISITEDPATH = 2
+        FOUNDPATH = 3
         START = 10
         END = 11
 
@@ -24,6 +25,7 @@ tileColours = { tileTypes.WALL: ["black", "black"],
                                         ["light grey", "#0048bc"],
                                         ["#FF0000", "#FF0000"]
                                         ],
+                tileTypes.FOUNDPATH: ["cyan", "magenta"]
                 }
 
 class Tile:
@@ -79,19 +81,11 @@ class Tile:
 
                 #Loop through the positions of neighbours if they are on the Maze
                 self.neighbours = []
-                print(self.x, self.y)
                 for coords in relativeNeighbours:
                         if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
                             if (blockVisited and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].visitCount < 1) or (not blockVisited):
                                 if (blockWalls and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].tileType != tileTypes.WALL) or (not blockWalls):
                                     self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
-                                else:
-                                    print("blocked because wall")
-
-                            else:
-                                print("blocked because visited")
-                        else:
-                            print("blocked because not in maze")
 
                 return self.neighbours
                         
@@ -161,6 +155,12 @@ class Tile:
                         self.changeType(newType = tileTypes.VISITEDPATH)
 
                 self.visitCount += 1
+
+        def setFoundPath(self):
+                """
+                Set the current tile to a FOUNDPATH tile.
+                """
+                self.changeType(newType = tileTypes.FOUNDPATH)
 
         def setStart(self):
                 """
