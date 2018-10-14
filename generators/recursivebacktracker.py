@@ -44,7 +44,7 @@ class Generator:
 			self.currentTile.visitCount += 1
 			
 			# Get the unvisited neighbours of the current tile.
-			neighbours = self.getNeighbours()
+			neighbours = self.currentTile.findNeighbours(blockVisited = True)
 
 			# If the current tile has any unvisited neighbours, carry on.
 			if len(neighbours) > 0:
@@ -74,21 +74,6 @@ class Generator:
 		# Set the top left and bottom right to the start and end respectively.	
 		self.maze.tiles[0][1].setStart()
 		self.maze.tiles[self.maze.size - 1][self.maze.size - 2].setEnd()
-
-	def getNeighbours(self):
-		"""
-		Internal method to get the currently unvisited neighbours of
-		the given tile
-		"""
-		unvisited = []
-
-		# Loop through the current tiles neighbours and add those who are still
-		# unvisited to our array.
-		for tile in self.currentTile.neighbours:
-			if not tile.visitCount:
-				unvisited.append(tile)
-
-		return unvisited
 
 
 	def removeWall(self, tile1, tile2):

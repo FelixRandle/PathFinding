@@ -1,11 +1,11 @@
 #Only run if this is the main file 
 if __name__ == "__main__":
-        #Import our application
+    #Import our application
 	import application
 
 	#Create an application object
 	App = application.Application()
 
-        #Run our apps mainloop
+	#Run our apps mainloop
 	App.mainloop()
 	

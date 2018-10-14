@@ -83,7 +83,7 @@ class Application(tk.Tk):
                         self.EEPos = 0
 
                 if self.EEPos == len(self.EESequence):
-                        mb.showinfo(self.title, "31.9505° S, 115.8605° E")
+                        mb.showinfo(self.title, "Found it!\n31.9505° S, 115.8605° E")
                         self.EEPos = 0
 
         def loadStyles(self):
@@ -207,18 +207,9 @@ class Application(tk.Tk):
                 """
                 # Load the frame we are going to attach it to.
                 frame = self.frames[MazeScreen]
+                self.maze = None
                 self.maze = maze.Maze(frame, canvasSize = self.screenSize, size = size)
                 self.maze.canvas.grid(row = 0, column = 0)
-
-        def resetMaze(self, size):
-                """
-                Destroy old maze and load a new maze with the given size
-                Arguments:
-                        size -- The width and height of the new maze.
-                """
-                # Destroy the current canvas of the maze then load a new one.
-                self.maze = None
-                self.loadMaze(size)
 
         def generateMaze(self):
                 """
@@ -242,7 +233,7 @@ class Application(tk.Tk):
                 size = int(settings.mazeSize.get())
 
                 # Reset the current maze and generate a new one from the loaded generator.
-                self.resetMaze(size)
+                self.loadMaze(size)
 
                 # Use the generator to create a new maze.
                 Generator(self.maze)
@@ -253,6 +244,10 @@ class Application(tk.Tk):
                 Arguments:
                         NONE
                 """
+                if self.maze.solving:
+                        mb.showerror("ERROR", "Maze already being solved")
+                        return
+                
                 # Copy the GenerationSettings for easier referencing.
                 settings = self.menus[SolverSettings]
 
@@ -274,6 +269,7 @@ class Application(tk.Tk):
                         return
 
                 # Use the solver to solve our maze.
+                self.maze.solving = True
                 Solver(self.maze, autorun = autorun, delay = delay)
 
 class HomeScreen(tk.Frame):
@@ -368,13 +364,13 @@ class GenerationSettings(SettingsMenu):
 
                 ttk.Label(self, text = "Generation Algorithm", style = "Header.TLabel").grid(row = 1, column = 0, pady = 20)
 
-                algorithms = (  "Recursive Backtracker",
+                generators = (  "Recursive Backtracker",
                                 "Prims Algorithm",
                                 "Kruskals Algorithm"
                                         )
 
-                self.algorithmChoice = ttk.Combobox(self, values = algorithms, state = "readonly", width = 20, font = ("arial", 14))
-                self.algorithmChoice.set(algorithms[0])
+                self.algorithmChoice = ttk.Combobox(self, values = generators, state = "readonly", width = 20, font = ("arial", 14))
+                self.algorithmChoice.set(generators[0])
                 self.algorithmChoice.grid(row = 2, column = 0, pady = 20)
 
                 ttk.Label(self, text = "Maze Size", style = "Header.TLabel").grid(row = 3, column = 0, pady = 20)
@@ -456,6 +452,6 @@ class SolverSettings(SettingsMenu):
                 self.parent.solveMaze()
                 
                         
-class solverMenu(tk.Frame):
+class SolverMenu(tk.Frame):
         def __init__(self, parent):
                 super().__init__(parent)
