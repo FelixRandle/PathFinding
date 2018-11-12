@@ -308,5 +308,15 @@ class Maze:
                     self.start = self.tiles[listX][listY]
                 elif tileType == tileTypes.END:
                     self.tiles[listX][listY].setEnd()
-                    self.end = self.tiles[listX][listY]                                                
+                    self.end = self.tiles[listX][listY]
+
+
+    def unvisitTiles(self):
+        """
+        Method used to turn all tiles currently marked as visited back to normal paths.
+        """
+        for tileX in self.tiles:
+            for tile in tileX:
+                if tile.tileType in (tileTypes.VISITEDPATH, tileTypes.FOUNDPATH):
+                    tile.setPath()
 

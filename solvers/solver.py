@@ -1,14 +1,15 @@
 # Base solver class to import
 
 class SolverTemplate:
-	def __init__(self, maze, autorun = False, delay = 0.1):
+	def __init__(self, maze, settings):
 		self.maze = maze
 		for tileX in self.maze.tiles:
 			for tile in tileX:
 				tile.visitCount = 0
 												
-		self.autorun = autorun
-		self.delay = delay
+		self.settings = settings
+		self.autorun = settings.autoStepEnabled 
+		self.delay = settings.autoStepDelay.get()
 
 	def autorun(self):
 		pass

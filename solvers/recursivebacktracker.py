@@ -30,8 +30,12 @@ class Solver(SolverTemplate):
 
 
         def step(self):
-                # If the current tile is the end tile, we have finished.
-                if self.currentTile == self.end:
+                # Get the current tiles neighbours, not including walls or tiles that have already been visited.
+                tileNeighbours = self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
+
+                # If the end tile is next to us, we have finished.
+                if self.end in tileNeighbours:
+                        self.stack.push(self.currentTile)
                         self.maze.solving = False
                         # Loop through the remaining stack and change all tiles to the FOUNDPATH type.
                         while not self.stack.isEmpty():
@@ -39,9 +43,6 @@ class Solver(SolverTemplate):
                                 tile.setRoute()
                         # Return to stop function from executing.
                         return True
-
-                # Get the current tiles neighbours, not including walls or tiles that have already been visited.
-                tileNeighbours = self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
 
                 # If there are unvisited neighbours, add the current tile to the stack and move to a random neighbour.
                 if len(tileNeighbours) > 0:
@@ -62,5 +63,6 @@ class Solver(SolverTemplate):
                                 return
                         
                 # Recursively call the function.
-                self.maze.parent.after(int(self.delay * 1000), self.step)
+                if self.autorun:
+                        self.maze.parent.after(int(self.delay * 1000), self.step)
 

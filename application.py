@@ -49,7 +49,7 @@ class Application(tk.Tk):
                 self.grid_columnconfigure(0, weight = 1)
 
                 # Create a dictionary for the screen tabs and populate it.
-                self.frames = {}
+                self.frames = dict()
 
                 # Load in all tabs and put them in our dictionary.
                 self.frames[HomeScreen] = HomeScreen(self)
@@ -64,6 +64,7 @@ class Application(tk.Tk):
                 # Load in all menus and put them in our dictionary.
                 self.menus[SolverSettings] = SolverSettings(self)
                 self.menus[GenerationSettings] = GenerationSettings(self)
+                self.menus[SolverMenu] = SolverMenu(self)
 
                 # Load Maze 
                 self.loadMaze()
@@ -120,8 +121,9 @@ class Application(tk.Tk):
                 self.menubar.add_cascade(label = "File", menu = fileMenu)
 
                 self.menubar.add_command(label = "Generate Maze", command = lambda: self.changeMenu(GenerationSettings))
-
-                self.menubar.add_command(label = "Solve Current Maze", command = lambda: self.changeMenu(SolverSettings))
+                
+                # If we are currently solving a maze, this brings up the Solver Menu, otherwise it brings up the Solver Settings.
+                self.menubar.add_command(label = "Solve Current Maze", command = lambda: self.changeMenu(SolverMenu) if self.maze.solving else self.changeMenu(SolverSettings))
 
                 editMenu = tk.Menu(self.menubar, tearoff = False)
                 editMenu.add_checkbutton(label = "Toggle edit mode", onvalue = True, offvalue = False, variable = self.frames[MazeScreen].editMode)
@@ -178,7 +180,7 @@ class Application(tk.Tk):
                 # Open a file save dialog for the user. 
                 filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
                 # If the file path fits the form of '*.maz' then save it. Otherwise don't.
-                if re.match(".+(.maz)\\b",filePath) != None:
+                if re.match(".+(?i)(.maz)\\b",filePath) != None:
                         self.maze.toFile(filePath)
                 elif filePath != "":
                         mb.showerror(self.title, "Please ensure the filePath fits the form of '*.maz'")
@@ -193,7 +195,7 @@ class Application(tk.Tk):
                 # Display a dialog box to get file path.
                 filePath = askopenfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Please select a .MAZ file")
                 # Ensure the filepath has a .maz suffix and if not, show an error.
-                if re.match(".+(.maz)\\b",filePath) != None:
+                if re.match(".+(?i)(.maz)\\b",filePath) != None:
                         self.maze.fromFile(filePath)
                         self.changeFrame(MazeScreen)
                 elif filePath != "":
@@ -268,9 +270,10 @@ class Application(tk.Tk):
                         mb.showerror(self.title, "Please enter a valid integer in the auto step delay")
                         return
 
+                self.changeMenu(SolverMenu)
                 # Use the solver to solve our maze.
                 self.maze.solving = True
-                Solver(self.maze, autorun = autorun, delay = delay)
+                self.solver = Solver(self.maze, settings)
 
 class HomeScreen(tk.Frame):
         def __init__(self, parent):
@@ -425,8 +428,11 @@ class SolverSettings(SettingsMenu):
 
                 ttk.Label(self, text = "Auto Step Delay (S)", style = "Header.TLabel").grid(row = 4, column = 0, pady = 5)
 
-                self.autoStepDelay = ttk.Entry(self, width = 10, validate = "focusout", validatecommand = self.validateDelayEntry)
+                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, value = 0.5, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
                 self.autoStepDelay.grid(row = 5, column = 0, pady = 20)
+
+                self.autoStepDelayLabel = ttk.Label(self, text = "0.500", style = "Header.TLabel")
+                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 20)
 
                 self.solveButtonImage = tk.PhotoImage(file = "assets/solveButton.png")
                 self.solveButton = tk.Button(self, image = self.solveButtonImage, command = self.solveMaze, borderwidth = 0)
@@ -440,18 +446,71 @@ class SolverSettings(SettingsMenu):
                         self.autoStepButton["text"] = "Disable AutoStep"
                         self.autoStepEnabled = True
 
-        def validateDelayEntry(self):
-                value = self.autoStepDelay.get()
-                try:
-                        int(value)
-                        return True
-                except ValueError:
-                        return False
+        def updateLabel(self, newValue):
+                self.autoStepDelayLabel.config(text = "{:.3f}".format(float(newValue)))
+
 
         def solveMaze(self):
                 self.parent.solveMaze()
                 
                         
-class SolverMenu(tk.Frame):
+class SolverMenu(SettingsMenu):
         def __init__(self, parent):
                 super().__init__(parent)
+
+                self.loadTitle("assets/solveTitle.png")
+
+                self.autoStepControls = tk.Frame(self)
+                self.autoStepControls.grid(row = 1, column = 0)
+
+                buttons = {"playButton" : self.startAutoStep, "pauseButton" : self.stopAutoStep, "stopButton" : self.stopSolve}
+                
+                self.play = tk.PhotoImage(file = "assets/playButton.png")
+                self.playButton = tk.Button(self.autoStepControls, image = self.play, command = self.startAutoStep, borderwidth = 0)
+                self.playButton.grid(row = 0, column = 0)
+
+                self.pause = tk.PhotoImage(file = "assets/pauseButton.png")
+                self.pauseButton = tk.Button(self.autoStepControls, image = self.pause, command = self.stopAutoStep, borderwidth = 0)
+                self.pauseButton.grid(row = 0, column = 1)
+
+                self.stop = tk.PhotoImage(file = "assets/stopButton.png")
+                self.stopButton = tk.Button(self.autoStepControls, image = self.stop, command = self.stopSolve, borderwidth = 0)
+                self.stopButton.grid(row = 0, column = 2)
+
+
+
+
+                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, value = 0.5, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
+                self.autoStepDelay.grid(row = 5, column = 0, pady = 20)
+
+                self.autoStepDelayLabel = ttk.Label(self, text = "0.500", style = "Header.TLabel")
+                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 20)
+
+                self.stepButton = tk.Button(self, width = 20, height = 5, text = "Step", command = self.step)
+                self.stepButton.grid(row = 10, column = 0, pady = 20)
+                
+                        
+
+        def startAutoStep(self):
+                self.parent.solver.autorun = True
+                self.parent.solver.step()
+
+        def stopAutoStep(self):
+                self.parent.solver.autorun = False
+
+        def stopSolve(self):
+                if mb.askyesno("End Solve?", "Are you sure you want to stop the current solve?"):
+                        self.stopAutoStep()
+                        self.parent.maze.solving = False
+                        self.parent.solver = None
+                        self.parent.changeMenu(None)
+
+                        self.parent.after(1000, self.parent.maze.unvisitTiles)
+
+        def step(self):
+                self.parent.solver.step() if not self.parent.solver.autorun else mb.showerror("ERROR", "Cannot force step whilst autorunning")
+                
+        def updateLabel(self, newValue):
+                newValue = "{:.3f}".format(float(newValue))
+                self.autoStepDelayLabel.config(text = newValue)
+                self.parent.solver.delay = float(newValue)
