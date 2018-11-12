@@ -84,7 +84,7 @@ class Application(tk.Tk):
                         self.EEPos = 0
 
                 if self.EEPos == len(self.EESequence):
-                        mb.showinfo(self.title, "Found it!\n31.9505° S, 115.8605° E")
+                        mb.showinfo(self.title, "Found it!\n31.9505' S, 115.8605' E")
                         self.EEPos = 0
 
         def loadStyles(self):
@@ -505,7 +505,7 @@ class SolverMenu(SettingsMenu):
                         self.parent.solver = None
                         self.parent.changeMenu(None)
 
-                        self.parent.after(1000, self.parent.maze.unvisitTiles)
+                        self.parent.after(10, self.parent.maze.unvisitTiles)
 
         def step(self):
                 self.parent.solver.step() if not self.parent.solver.autorun else mb.showerror("ERROR", "Cannot force step whilst autorunning")
