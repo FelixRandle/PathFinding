@@ -3,3 +3,4 @@ generators/__pycache__
 solvers/__pycache__
 build
 *.spec
+*.pyc
