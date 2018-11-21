@@ -5,10 +5,6 @@ import tkinter.messagebox as mb
 class Solver(SolverTemplate):
         def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
-
-                # Create a new stack to store tiles.
-                self.stack = Stack()
-
                 # Store the mazes start and end tiles.
                 self.start = self.maze.start
                 self.end = self.maze.end
@@ -30,8 +26,6 @@ class Solver(SolverTemplate):
 
 
         def step(self):
-                if not self.autorun:
-                        return
                 # Get the current tiles neighbours, not including walls or tiles that have already been visited.
                 tileNeighbours = self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
 
@@ -43,6 +37,7 @@ class Solver(SolverTemplate):
                         while not self.stack.isEmpty():
                                 tile = self.stack.pop()
                                 tile.setRoute()
+                                print(self.steps)
                         # Return to stop function from executing.
                         return True
 
@@ -63,6 +58,8 @@ class Solver(SolverTemplate):
                                 mb.showerror("ERROR", "Cannot solve maze")
                                 self.maze.solving = False
                                 return
-                  
-                self.maze.parent.after(int(self.delay * 1000), self.step)
 
+                self.steps += 1
+
+                if self.autorun:
+                        self.maze.parent.after(int(self.delay * 1000), self.step)
