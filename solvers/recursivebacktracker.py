@@ -30,6 +30,8 @@ class Solver(SolverTemplate):
 
 
         def step(self):
+                if not self.autorun:
+                        return
                 # Get the current tiles neighbours, not including walls or tiles that have already been visited.
                 tileNeighbours = self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
 
@@ -61,8 +63,6 @@ class Solver(SolverTemplate):
                                 mb.showerror("ERROR", "Cannot solve maze")
                                 self.maze.solving = False
                                 return
-                        
-                # Recursively call the function.
-                if self.autorun:
-                        self.maze.parent.after(int(self.delay * 1000), self.step)
+                  
+                self.maze.parent.after(int(self.delay * 1000), self.step)
 
