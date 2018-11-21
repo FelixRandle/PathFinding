@@ -40,6 +40,7 @@ class Application(tk.Tk):
                 self.screenSize = 750
                 # Take away 5 to account for border of screen so maze fits properly
                 self.minsize(width = self.screenSize - 5, height = self.screenSize - 5)
+
                 self.resizable(False, False)
 
                 # Create all styles to be used for our GUI.
@@ -59,7 +60,7 @@ class Application(tk.Tk):
                 self.changeFrame(HomeScreen)
 
                 # Create a dictionary for the side menus and populate it.
-                self.menus = {}
+                self.menus = dict()
 
                 # Load in all menus and put them in our dictionary.
                 self.menus[SolverSettings] = SolverSettings(self)
@@ -84,7 +85,7 @@ class Application(tk.Tk):
                         self.EEPos = 0
 
                 if self.EEPos == len(self.EESequence):
-                        mb.showinfo(self.title, "Found it!\n31.9505' S, 115.8605' E")
+                        mb.showinfo(self.title, u"Found it!\n31.9505\u00B0 S, 115.8605\u00B0 E")
                         self.EEPos = 0
 
         def loadStyles(self):
@@ -265,13 +266,14 @@ class Application(tk.Tk):
                 autorun = settings.autoStepEnabled
 
                 try:
-                        delay = float(settings.autoStepDelay.get())
+                        delay = float(settings.stepDelay.get())
                 except ValueError:
                         mb.showerror(self.title, "Please enter a valid integer in the auto step delay")
                         return
 
                 self.changeMenu(SolverMenu)
                 # Use the solver to solve our maze.
+                self.maze.unvisitTiles()
                 self.maze.solving = True
                 self.solver = Solver(self.maze, settings)
 
@@ -308,8 +310,10 @@ class HomeScreen(tk.Frame):
                 self.loadButton = tk.Button(self, image = self.loadImage, command = self.parent.loadMazeFile, borderwidth = 0)
                 self.loadButton.grid(row = 2, column = 0, pady = 30)
 
+                self.grid_rowconfigure(10, weight=100)
+
                 self.footer = ttk.Label(self, text = "Created By Felix J. Randle", style = "Footer.TLabel")
-                self.footer.grid(row = 10, column = 0, sticky = "S", pady = 50)
+                self.footer.grid(row = 10, column = 0, sticky = "S", pady=(80,0))
 
         def generateMaze(self):
                 """
@@ -373,7 +377,7 @@ class GenerationSettings(SettingsMenu):
                                         )
 
                 self.algorithmChoice = ttk.Combobox(self, values = generators, state = "readonly", width = 20, font = ("arial", 14))
-                self.algorithmChoice.set(generators[0])
+                self.algorithmChoice.current(0)
                 self.algorithmChoice.grid(row = 2, column = 0, pady = 20)
 
                 ttk.Label(self, text = "Maze Size", style = "Header.TLabel").grid(row = 3, column = 0, pady = 20)
@@ -428,11 +432,14 @@ class SolverSettings(SettingsMenu):
 
                 ttk.Label(self, text = "Auto Step Delay (S)", style = "Header.TLabel").grid(row = 4, column = 0, pady = 5)
 
-                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, value = 0.5, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
-                self.autoStepDelay.grid(row = 5, column = 0, pady = 20)
+                self.stepDelay = tk.DoubleVar()
+                self.stepDelay.set(0.5)
+
+                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, variable = self.stepDelay, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
+                self.autoStepDelay.grid(row = 11, column = 0, pady = 5)
 
                 self.autoStepDelayLabel = ttk.Label(self, text = "0.500", style = "Header.TLabel")
-                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 20)
+                self.autoStepDelayLabel.grid(row = 10, column = 0, pady = 20)
 
                 self.solveButtonImage = tk.PhotoImage(file = "assets/solveButton.png")
                 self.solveButton = tk.Button(self, image = self.solveButtonImage, command = self.solveMaze, borderwidth = 0)
@@ -477,19 +484,20 @@ class SolverMenu(SettingsMenu):
                 self.stopButton = tk.Button(self.autoStepControls, image = self.stop, command = self.stopSolve, borderwidth = 0)
                 self.stopButton.grid(row = 0, column = 2)
 
+                self.stepDelay = self.parent.menus[SolverSettings].stepDelay
 
+                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, variable = self.stepDelay, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
+                self.autoStepDelay.grid(row = 5, column = 0, pady = 5)
 
+                self.autoStepDelayLabel = ttk.Label(self, text = "", style = "Footer.TLabel")
+                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 5)
 
-                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, value = 0.5, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
-                self.autoStepDelay.grid(row = 5, column = 0, pady = 20)
+                self.stepButton = tk.Button(self, width = 10, height = 2, text = "Step", command = self.step)
+                self.stepButton.grid(row = 10, column = 0, pady = 5)
 
-                self.autoStepDelayLabel = ttk.Label(self, text = "0.500", style = "Header.TLabel")
-                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 20)
-
-                self.stepButton = tk.Button(self, width = 20, height = 5, text = "Step", command = self.step)
-                self.stepButton.grid(row = 10, column = 0, pady = 20)
-                
-                        
+                self.advancedInfo = tk.IntVar()
+                self.advancedInfoButton = ttk.Checkbutton(self, text = "Show Advanced Information?", variable=self.advancedInfo)                
+                self.advancedInfoButton.grid(row = 11, column = 0, pady = 5)        
 
         def startAutoStep(self):
                 self.parent.solver.autorun = True
@@ -505,12 +513,11 @@ class SolverMenu(SettingsMenu):
                         self.parent.solver = None
                         self.parent.changeMenu(None)
 
-                        self.parent.after(10, self.parent.maze.unvisitTiles)
+                        self.parent.after(1000, self.parent.maze.unvisitTiles)
 
         def step(self):
                 self.parent.solver.step() if not self.parent.solver.autorun else mb.showerror("ERROR", "Cannot force step whilst autorunning")
                 
         def updateLabel(self, newValue):
-                newValue = "{:.3f}".format(float(newValue))
-                self.autoStepDelayLabel.config(text = newValue)
+                self.autoStepDelayLabel.config(text = "{:.3f}".format(float(newValue)))
                 self.parent.solver.delay = float(newValue)

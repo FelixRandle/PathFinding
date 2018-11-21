@@ -11,12 +11,21 @@ class SolverTemplate:
 		self.autorun = settings.autoStepEnabled 
 		self.delay = settings.autoStepDelay.get()
 
+		self.stack = Stack()
+
+		self.steps = 0
+
 	def autorun(self):
 		pass
 
 	def step(self):
 		print("Current Solver not functional. Please ensure that your stepping function is called 'step' so it overrides the base function.")
 
+	def getStack(self):
+		return self.stack
+
+	def getSteps(self):
+		return self.steps
 class Stack:
 	 def __init__(self):
 		 self.items = []
