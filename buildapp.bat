@@ -1,1 +1,1 @@
-pyinstaller --distpath . --onefile --name PathFinding --noconsole --icon ./assets/maze.ico --hidden-import=./application.py --debug all main.py
+pyinstaller --distpath . --onefile --name PathFinding --noconsole --icon ./assets/maze.ico main.py

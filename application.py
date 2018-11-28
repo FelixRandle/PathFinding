@@ -100,6 +100,8 @@ class Application(tk.Tk):
 
                 self.style.configure("Title.TLabel", font = ("Helvetica", 30, "bold italic"))
 
+                self.style.configure("Subheading.TLabel", font = ("Helvetica", 13))
+
                 self.style.configure("Footer.TLabel", font = ("Times", 12, "roman"))
 
                 self.style.configure("Settings.TButton", height = 2, width = 20, font = ("arial", 15))
@@ -228,6 +230,8 @@ class Application(tk.Tk):
 
                 if algorithm == "Recursive Backtracker":
                         from generators.recursivebacktracker import Generator
+                elif algorithm == "Kruskals Algorithm":
+                        from generators.kruskals import Generator
                 else:
                         print("No item selected")
                         return
@@ -265,11 +269,8 @@ class Application(tk.Tk):
 
                 autorun = settings.autoStepEnabled
 
-                try:
-                        delay = float(settings.stepDelay.get())
-                except ValueError:
-                        mb.showerror(self.title, "Please enter a valid integer in the auto step delay")
-                        return
+                delay = 1 / settings.speed.get()
+
 
                 self.changeMenu(SolverMenu)
                 # Use the solver to solve our maze.
@@ -347,7 +348,7 @@ class SettingsMenu(tk.Frame):
 
                 self.exitImage = tk.PhotoImage(file = "assets/settingsExit.png")
                 self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: parent.changeMenu(None), borderwidth = 0)
-                self.exitButton.grid(row = 0, column = 100, sticky = "NE")
+                self.exitButton.grid(row = 0, column = 0, sticky = "NE")
 
         def loadTitle(self, source):
                 """
@@ -430,16 +431,39 @@ class SolverSettings(SettingsMenu):
                 self.autoStepButton = ttk.Button(self, text = "Enable AutoStep", style = "Settings.TButton", command = self.toggleAutoStep)
                 self.autoStepButton.grid(row = 3, column = 0, pady = 20)
 
-                ttk.Label(self, text = "Auto Step Delay (S)", style = "Header.TLabel").grid(row = 4, column = 0, pady = 5)
+                self.speedsFrame = tk.Frame(self)
+                self.speedsFrame.grid(row = 4, column = 0)
 
-                self.stepDelay = tk.DoubleVar()
-                self.stepDelay.set(0.5)
+                self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
+                self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, variable = self.stepDelay, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
-                self.autoStepDelay.grid(row = 11, column = 0, pady = 5)
+                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
+                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.setSpeed(1), borderwidth = 0)
+                self.X1Button.grid(row = 1, column = 1)
 
-                self.autoStepDelayLabel = ttk.Label(self, text = "0.500", style = "Header.TLabel")
-                self.autoStepDelayLabel.grid(row = 10, column = 0, pady = 20)
+                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
+                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.setSpeed(2), borderwidth = 0)
+                self.X2Button.grid(row = 1, column = 2)
+
+                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
+                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.setSpeed(5), borderwidth = 0)
+                self.X5Button.grid(row = 1, column = 5)
+
+                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
+                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.setSpeed(10), borderwidth = 0)
+                self.X10Button.grid(row = 1, column = 10)
+
+                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
+                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.setSpeed(50), borderwidth = 0)
+                self.X50Button.grid(row = 1, column = 50)
+
+                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
+                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.setSpeed(100), borderwidth = 0)
+                self.X100Button.grid(row = 1, column = 100)
+
+                self.speed = tk.DoubleVar()
+                self.speed.set(1)
+                self.speed.trace("w", self.updateLabel)
 
                 self.solveButtonImage = tk.PhotoImage(file = "assets/solveButton.png")
                 self.solveButton = tk.Button(self, image = self.solveButtonImage, command = self.solveMaze, borderwidth = 0)
@@ -453,9 +477,12 @@ class SolverSettings(SettingsMenu):
                         self.autoStepButton["text"] = "Disable AutoStep"
                         self.autoStepEnabled = True
 
-        def updateLabel(self, newValue):
-                self.autoStepDelayLabel.config(text = "{:.3f}".format(float(newValue)))
+        def setSpeed(self, newSpeed):
+                self.speed.set(newSpeed)
 
+        def updateLabel(self, *args):
+                self.speedDisplay.config(text = "Current Speed: X{}".format(int(self.speed.get())))
+                self.parent.menus[SolverMenu].speedDisplay.config(text = "Current Speed: X{}".format(int(self.speed.get())))
 
         def solveMaze(self):
                 self.parent.solveMaze()
@@ -484,13 +511,35 @@ class SolverMenu(SettingsMenu):
                 self.stopButton = tk.Button(self.autoStepControls, image = self.stop, command = self.stopSolve, borderwidth = 0)
                 self.stopButton.grid(row = 0, column = 2)
 
-                self.stepDelay = self.parent.menus[SolverSettings].stepDelay
+                self.speedsFrame = tk.Frame(self)
+                self.speedsFrame.grid(row = 4, column = 0)
 
-                self.autoStepDelay = ttk.Scale(self, from_ = 0.001, to = 1, variable = self.stepDelay, orient = tk.HORIZONTAL, command = self.updateLabel, length = 200)
-                self.autoStepDelay.grid(row = 5, column = 0, pady = 5)
+                self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
+                self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.autoStepDelayLabel = ttk.Label(self, text = "", style = "Footer.TLabel")
-                self.autoStepDelayLabel.grid(row = 6, column = 0, pady = 5)
+                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
+                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.parent.solver.setSpeed(1), borderwidth = 0)
+                self.X1Button.grid(row = 1, column = 1)
+
+                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
+                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.parent.solver.setSpeed(2), borderwidth = 0)
+                self.X2Button.grid(row = 1, column = 2)
+
+                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
+                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.parent.solver.setSpeed(5), borderwidth = 0)
+                self.X5Button.grid(row = 1, column = 5)
+
+                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
+                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.parent.solver.setSpeed(10), borderwidth = 0)
+                self.X10Button.grid(row = 1, column = 10)
+
+                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
+                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.parent.solver.setSpeed(50), borderwidth = 0)
+                self.X50Button.grid(row = 1, column = 50)
+
+                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
+                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.parent.solver.setSpeed(100), borderwidth = 0)
+                self.X100Button.grid(row = 1, column = 100)
 
                 self.stepButton = tk.Button(self, width = 10, height = 2, text = "Step", command = self.step)
                 self.stepButton.grid(row = 10, column = 0, pady = 5)

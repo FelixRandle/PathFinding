@@ -9,7 +9,7 @@ class SolverTemplate:
 												
 		self.settings = settings
 		self.autorun = settings.autoStepEnabled 
-		self.delay = settings.autoStepDelay.get()
+		self.delay = 1 / settings.speed.get()
 
 		self.stack = Stack()
 
@@ -26,6 +26,11 @@ class SolverTemplate:
 
 	def getSteps(self):
 		return self.steps
+
+	def setSpeed(self, newSpeed):
+		self.delay = 1 / newSpeed
+		self.settings.speed.set(newSpeed)
+
 class Stack:
 	 def __init__(self):
 		 self.items = []
