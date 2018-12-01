@@ -1,13 +1,14 @@
 # Base solver class to import
 
 class SolverTemplate:
-	def __init__(self, maze, settings):
+	def __init__(self, maze, settings, advancedInformation):
 		self.maze = maze
 		for tileX in self.maze.tiles:
 			for tile in tileX:
 				tile.visitCount = 0
 												
 		self.settings = settings
+		self.advancedInformation = advancedInformation
 		self.autorun = settings.autoStepEnabled 
 		self.delay = 1 / settings.speed.get()
 
@@ -24,8 +25,8 @@ class SolverTemplate:
 	def getStack(self):
 		return self.stack
 
-	def getSteps(self):
-		return self.steps
+	def updateSteps(self):
+		self.advancedInformation.stepCount.config(text = "Steps: {}".format(self.steps))
 
 	def setSpeed(self, newSpeed):
 		self.delay = 1 / newSpeed

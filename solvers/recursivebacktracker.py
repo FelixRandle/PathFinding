@@ -11,7 +11,8 @@ class Solver(SolverTemplate):
 
                 # If the start or end do not exist, the user messed up so we can't start the solver.
                 if (self.start == None) or (self.end == None):
-                        print("NO START OR END FOUND WTF WHY")
+                        self.maze.solving = False
+                        mb.showerror("ERROR", "Could not find either start or end of maze, please ensure both of these are placed on the screen.")
 
                 # Set the starting tile to the mazes start.
                 self.currentTile = self.start
@@ -37,7 +38,6 @@ class Solver(SolverTemplate):
                         while not self.stack.isEmpty():
                                 tile = self.stack.pop()
                                 tile.setRoute()
-                                print(self.steps)
                         # Return to stop function from executing.
                         return True
 
@@ -60,6 +60,7 @@ class Solver(SolverTemplate):
                                 return
 
                 self.steps += 1
+                self.updateSteps()
 
                 if self.autorun:
                         self.maze.parent.after(int(self.delay * 1000), self.step)

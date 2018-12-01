@@ -3,30 +3,47 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 # Enum library used for different tileTypes.
-from enum import Enum
+from enum import IntEnum
 # Pickle library used for serializing and deserializing maze objects.
 import pickle
 
 # Enum for the different tiles we can have in the maze.
-class tileTypes(Enum):
+class tileTypes(IntEnum):
     WALL = 0
     PATH = 1
-    VISITEDPATH = 2
-    FOUNDPATH = 3
+    PATH_VISITED_ONCE = 2
+    PATH_VISITED_TWICE = 3
+    FOUND_PATH = 5
     START = 10
     END = 11
-
+    
 # Dictionary of colours to use for different tiles, background then foreground
 tileColours = { tileTypes.WALL: ["black", "black"],
         tileTypes.PATH: ["light grey", "white"],
         tileTypes.START: ["green", "light green"],
         tileTypes.END: ["pink", "red"],
-        tileTypes.VISITEDPATH: [["light grey", "#2376fc"],
-                    ["light grey", "#0048bc"],
-                    ["#FF0000", "#FF0000"]
-                    ],
-        tileTypes.FOUNDPATH: ["cyan", "magenta"]
+        tileTypes.PATH_VISITED_ONCE: ["light grey", "#2376fc"],
+        tileTypes.PATH_VISITED_TWICE: ["light grey", "#0048bc"],
+        tileTypes.FOUND_PATH: ["cyan", "magenta"]
         }
+
+try:
+    with open("colours.pckl", "rb") as fileIn:
+        try:
+            tileColours.update(pickle.load(fileIn))
+        except EOFError:
+            pass
+except FileNotFoundError:
+    pass
+
+tileNames = {
+    tileTypes.WALL: "Wall",
+    tileTypes.WALL: "Path",
+    tileTypes.WALL: "Visited Path",
+    tileTypes.WALL: "Found Path",
+    tileTypes.WALL: "Start",
+    tileTypes.WALL: "End"   
+}
 
 class Tile:
     """Class used for the tiles of a maze."""
@@ -109,6 +126,13 @@ class Tile:
             }
         return data
 
+    def updateColour(self):
+        fill = tileColours[self.tileType][1]
+        outline = tileColours[self.tileType][0]
+
+        self.parent.itemconfig(self.canvasRect, fill = fill)
+        self.parent.itemconfig(self.canvasRect, outline = outline)
+
     def changeType(self, newType = tileTypes.PATH):
         """
         Internal method for changing the tile type. This should not be used by generators or solvers.
@@ -119,15 +143,7 @@ class Tile:
         # Change the tileType of the tile.
         self.tileType = newType
         # Change the tile colours to reflect the newly desired tile.
-        if newType == tileTypes.VISITEDPATH:
-            fill = tileColours[self.tileType][self.visitCount][1]
-            outline = tileColours[self.tileType][self.visitCount][0]
-        else:
-            fill = tileColours[self.tileType][1]
-            outline = tileColours[self.tileType][0]
-
-        self.parent.itemconfig(self.canvasRect, fill = fill)
-        self.parent.itemconfig(self.canvasRect, outline = outline)
+        self.updateColour()
 
     def setWall(self):
         """
@@ -143,20 +159,27 @@ class Tile:
 
     def setVisited(self):
         """
-        Set the current tile to a VISITEDPATH tile.
+        Set the current tile to a PATH_VISITED_* tile.
         """
 
         if self.tileType not in (tileTypes.START, tileTypes.END):
-            self.changeType(newType = tileTypes.VISITEDPATH)
+            if self.visitCount > 0:
+                tileType = tileTypes.PATH_VISITED_TWICE
+            else:
+                tileType = tileTypes.PATH_VISITED_ONCE
+        else:
+            return
+
+        self.changeType(newType = tileType)
         
         self.visitCount += 1
 
     def setRoute(self):
         """
-        Set the current tile to a FOUNDPATH tile.
+        Set the current tile to a FOUND_PATH tile.
         """
         if self.tileType not in (tileTypes.START, tileTypes.END):
-            self.changeType(newType = tileTypes.FOUNDPATH)
+            self.changeType(newType = tileTypes.FOUND_PATH)
 
     def setStart(self):
         """
@@ -317,6 +340,6 @@ class Maze:
         """
         for tileX in self.tiles:
             for tile in tileX:
-                if tile.tileType in (tileTypes.VISITEDPATH, tileTypes.FOUNDPATH):
+                if tile.tileType in (tileTypes.PATH_VISITED_ONCE, tileTypes.PATH_VISITED_TWICE, tileTypes.FOUND_PATH):
                     tile.setPath()
 
