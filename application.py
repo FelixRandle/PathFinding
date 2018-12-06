@@ -1,6 +1,7 @@
 #Internal Imports
 import maze
 import tkColourPicker
+from customFont import loadFont
 
 #External imports
 # Tkinter, ttk and messagebox libraries used for GUI aspects of the program.
@@ -22,7 +23,8 @@ BUGS:
 
 """
 TODO:
-        Help Button, HOME PAGE, Top left       
+        Help Button, HOME PAGE, Top left     
+        WHEN MAZE LOADED, CHANGE APP Title TO REFLECT FILE  
 """
 
 class Application(tk.Tk):
@@ -32,9 +34,9 @@ class Application(tk.Tk):
         def __init__(self, *args, **kwargs):
                 super().__init__()
 
-                # Set the title and icon of our application.
+                # Set the Title and icon of our application.
                 self.title("PathFinding")
-                self.title = "PathFinding"
+                self.Title = "PathFinding"
 
                 self.tk_setPalette(background="#D9D9D9", foreground="#000000")
                 # Get the current directory.
@@ -87,6 +89,7 @@ class Application(tk.Tk):
                 self.EEPos = 0
                 self.bind("<Key>", self.keyPress)
 
+
         def keyPress(self, event):
                 if event.keycode == self.EESequence[self.EEPos]:
                         self.EEPos += 1
@@ -94,10 +97,13 @@ class Application(tk.Tk):
                         self.EEPos = 0
 
                 if self.EEPos == len(self.EESequence):
-                        mb.showinfo(self.title, u"Found it!\n31.9505\u00B0 S, 115.8605\u00B0 E")
+                        mb.showinfo(self.Title, u"Found it!\n31.9505\u00B0 S, 115.8605\u00B0 E")
                         self.EEPos = 0
 
+
         def loadStyles(self):
+                # Load in a custom font
+                loadFont("assets/fonts/AlegreyaSansSC-Regular.ttf")
                 # Load a style object
                 self.style = ttk.Style()
 
@@ -105,11 +111,9 @@ class Application(tk.Tk):
                 self.style.configure(".", background = "#d9d9d9")
                 
                 # Load in styles for any situation we need.
-                self.style.configure("Header.TLabel", font = ("Helvetica", 15, "italic"))
+                self.style.configure("Header.TLabel", font = ("Alegreya Sans SC Regular", 15, "bold italic"))
 
-                self.style.configure("Title.TLabel", font = ("Helvetica", 30, "bold italic"))
-
-                self.style.configure("Subheading.TLabel", font = ("Helvetica", 13))
+                self.style.configure("Subheading.TLabel", font = ("Alegreya Sans SC Regular", 13))
 
                 self.style.configure("Footer.TLabel", font = ("Times", 12, "roman"))
 
@@ -128,14 +132,14 @@ class Application(tk.Tk):
                 fileMenu.add_command(label = "Save Maze", command = self.saveMazeFile)
                 fileMenu.add_command(label = "Load Maze", command = self.loadMazeFile)
                 fileMenu.add_separator()
-                fileMenu.add_command(label = "Save Solve", command = lambda: print())
+                fileMenu.add_command(label = "Save Solve", command = lambda: print("Save Solve"))
                 fileMenu.add_command(label = "Load Solve", command = lambda: print("Load Solve"))
 
                 self.menubar.add_cascade(label = "File", menu = fileMenu)
 
                 self.menubar.add_command(label = "Generate Maze", command = self.generateMaze)
                 
-                # If we are currently solving a maze, this brings up the Solver Menu, otherwise it brings up the Solver Settings.
+                # If we are currently solving a maze, this brings up the Solver Menu, otherwise it solves the Maze.
                 self.menubar.add_command(label = "Solve Current Maze", command = lambda: self.changeMenu(SolverMenu) if self.maze.solving else self.solveMaze())
 
                 editMenu = tk.Menu(self.menubar, tearoff = False)
@@ -185,6 +189,7 @@ class Application(tk.Tk):
                         #Place our new frame onto the grid
                         frame.grid(row = 0, column = 1, sticky = "NE")
 
+
         def saveMazeFile(self):
                 """
                 Method used to translate a maze object into a binary file.
@@ -193,12 +198,15 @@ class Application(tk.Tk):
                         NONE
                 """
                 # Open a file save dialog for the user. 
-                filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
+                filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], Title = "Where to save file?")
+                print(filePath)
                 # If the file path fits the form of '*.maz' then save it. Otherwise don't.
                 if re.match(".+(?i)(.maz)\\b",filePath) != None:
                         self.maze.toFile(filePath)
-                elif filePath != "":
-                        mb.showerror(self.title, "Please ensure the filePath fits the form of '*.maz'")
+                else:
+                        self.maze.toFile(filePath+".maz")
+                        # mb.showerror(self.Title, "Please ensure the filePath fits the form of '*.maz'")
+
 
         def loadMazeFile(self):
                 """
@@ -208,13 +216,14 @@ class Application(tk.Tk):
                         NONE
                 """
                 # Display a dialog box to get file path.
-                filePath = askopenfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Please select a .MAZ file")
+                filePath = askopenfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], Title = "Please select a .MAZ file")
                 # Ensure the filepath has a .maz suffix and if not, show an error.
                 if re.match(".+(?i)(.maz)\\b",filePath) != None:
                         self.maze.fromFile(filePath)
                         self.changeFrame(MazeScreen)
                 elif filePath != "":
-                        mb.showerror(self.title, "That is not a valid filename.\nPlease ensure the filePath fits the form of '*.maz'")
+                        mb.showerror(self.Title, "That is not a valid filename.\nPlease ensure the filePath fits the form of '*.maz'")
+
 
         def loadMaze(self, size = 51):
                 """
@@ -227,6 +236,7 @@ class Application(tk.Tk):
                 self.maze = None
                 self.maze = maze.Maze(frame, canvasSize = self.screenSize, size = size)
                 self.maze.canvas.grid(row = 0, column = 0)
+
 
         def generateMaze(self):
                 """
@@ -256,6 +266,7 @@ class Application(tk.Tk):
 
                 # Use the generator to create a new maze.
                 Generator(self.maze)
+
 
         def solveMaze(self):
                 """
@@ -290,6 +301,7 @@ class Application(tk.Tk):
                 self.maze.solving = True
                 self.solver = Solver(self.maze, settings, self.menus[SolverMenu])
 
+
 class HomeScreen(tk.Frame):
         def __init__(self, parent):
                 super().__init__()
@@ -301,29 +313,34 @@ class HomeScreen(tk.Frame):
 
                 self.loadGUI()
 
+
         def loadGUI(self):
                 """
                 Method used to load the GUI aspects of the homescreen.
                 Arguments:
                         NONE
                 """
-                self.titleImage = tk.PhotoImage(file = "assets/homeTitle.png")
-                self.title = ttk.Label(self, image = self.titleImage, text = "Path Finding Thing", style = "Title.TLabel")
-                self.title.grid(row = 0, column = 0, pady = 50)
+                self.TitleImage = tk.PhotoImage(file = "assets/home/Title.png")
+                self.Title = ttk.Label(self, image = self.TitleImage)
+                self.Title.grid(row = 0, column = 0, pady = 50)
 
-                self.settingsImage = tk.PhotoImage(file = "assets/homeSettings.png")
+                self.settingsImage = tk.PhotoImage(file = "assets/home/settings.png")
                 self.settingsButton = tk.Button(self, image = self.settingsImage, command = lambda: self.parent.changeMenu(MenuList), borderwidth = 0)
                 self.settingsButton.grid(row = 0, column = 0, sticky = "NE", pady= 5, padx = 5)
 
-                self.helpImage = tk.PhotoImage(file = "assets/homeHelp.png")
-                self.helpButton = tk.Button(self, image = self.helpImage, command = lambda: mb.showinfo("INFO", "Stop being a fucking idiot"), borderwidth = 0)
+                self.helpImage = tk.PhotoImage(file = "assets/home/help.png")
+                self.helpButton = tk.Button(self, image = self.helpImage, command = lambda: mb.showinfo("INFO", "Not Done Yet"), borderwidth = 0)
                 self.helpButton.grid(row = 0, column = 0, sticky = "NW", pady = 5, padx = 5)
 
-                self.generateImage = tk.PhotoImage(file = "assets/homeGenerate.png")
+                self.loginButton = tk.PhotoImage(file = "assets/home/login.png")
+                self.userStatusButton = tk.Button(self, image = self.loginButton, command = lambda:mb.showerror("NOT DONE", "Not completed yet"), borderwidth = 0)
+                self.userStatusButton.grid(row = 0, column = 0, sticky = "N", pady = 5)
+
+                self.generateImage = tk.PhotoImage(file = "assets/home/generate.png")
                 self.generateButton = tk.Button(self, image = self.generateImage, command = self.generateMaze, borderwidth = 0)
                 self.generateButton.grid(row = 1, column = 0, pady = 30)
 
-                self.loadImage = tk.PhotoImage(file = "assets/homeLoad.png")
+                self.loadImage = tk.PhotoImage(file = "assets/home/load.png")
                 self.loadButton = tk.Button(self, image = self.loadImage, command = self.parent.loadMazeFile, borderwidth = 0)
                 self.loadButton.grid(row = 2, column = 0, pady = 30)
 
@@ -331,6 +348,7 @@ class HomeScreen(tk.Frame):
 
                 self.footer = ttk.Label(self, text = "Created By Felix J. Randle", style = "Footer.TLabel")
                 self.footer.grid(row = 10, column = 0, sticky = "S", pady=(80,0))
+
 
         def generateMaze(self):
                 """
@@ -361,19 +379,21 @@ class MenuList(tk.Frame):
 
                 self.loadWidgets()
 
+
         def loadWidgets(self):
-                self.exitImage = tk.PhotoImage(file = "assets/settingsExit.png")
+                self.exitImage = tk.PhotoImage(file = "assets/settings/exit.png")
                 self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: self.parent.changeMenu(None), borderwidth = 0)
                 self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
-                self.GenerationSettingsIco = tk.PhotoImage(file = "assets/generationTitle.png") 
+                self.GenerationSettingsIco = tk.PhotoImage(file = "assets/settings/generationTitle.png") 
                 tk.Button(self, image = self.GenerationSettingsIco, borderwidth = 0, command = lambda: self.parent.changeMenu(GeneralSettings)).grid(row = 0, column = 0, pady = 70, padx = 40)    
 
-                self.SolverSettingsIcon = tk.PhotoImage(file = "assets/solveTitle.png") 
+                self.SolverSettingsIcon = tk.PhotoImage(file = "assets/settings/solverTitle.png") 
                 tk.Button(self, image = self.SolverSettingsIcon, borderwidth = 0, command = lambda: self.parent.changeMenu(SolverSettings)).grid(row = 5, column = 0, pady = 70, padx = 40)    
 
-                self.GenerationSettingsIcon = tk.PhotoImage(file = "assets/generationTitle.png") 
+                self.GenerationSettingsIcon = tk.PhotoImage(file = "assets/settings/generationTitle.png") 
                 tk.Button(self, image = self.GenerationSettingsIcon, borderwidth = 0, command = lambda: self.parent.changeMenu(GenerationSettings)).grid(row = 10, column = 0, pady = 70, padx = 40)               
+
 
 class SettingsMenu(tk.Frame):
         def __init__(self, parent, back = True):
@@ -385,21 +405,22 @@ class SettingsMenu(tk.Frame):
                 self.parent = parent
 
                 if back:
-                        self.backImage = tk.PhotoImage(file = "assets/settingsBack.png")
+                        self.backImage = tk.PhotoImage(file = "assets/settings/back.png")
                         self.backButton = tk.Button(self, image = self.backImage, command = lambda: parent.changeMenu(MenuList), borderwidth = 0)
                         self.backButton.grid(row = 0, column = 0, sticky = "NW", pady = 5, padx = 5)
 
-                self.exitImage = tk.PhotoImage(file = "assets/settingsExit.png")
+                self.exitImage = tk.PhotoImage(file = "assets/settings/exit.png")
                 self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: parent.changeMenu(None), borderwidth = 0)
                 self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
+
         def loadTitle(self, source):
                 """
-                Load a title image from the given source.
+                Load a Title image from the given source.
                 """
-                self.titleImage = tk.PhotoImage(file = source)
+                self.TitleImage = tk.PhotoImage(file = source)
 
-                tk.Label(self, image = self.titleImage).grid(row = 0, column = 0, pady = 50, padx = 40)
+                tk.Label(self, image = self.TitleImage).grid(row = 0, column = 0, pady = 50, padx = 40)
 
 
 class GeneralSettings(SettingsMenu):
@@ -407,9 +428,10 @@ class GeneralSettings(SettingsMenu):
                 super().__init__(parent)
                 self.parent = parent
 
-                self.loadTitle("assets/generationTitle.png")
+                self.loadTitle("assets/settings/generationTitle.png")
 
                 self.loadWidgets()
+
 
         def loadWidgets(self):
                 self.frames = {}
@@ -419,8 +441,8 @@ class GeneralSettings(SettingsMenu):
                         container = tk.Frame(self, width = 200)
                         container.grid(row = key.value + 1, column = 0, pady = 5)
 
-                        title = ttk.Label(container, style = "Header.TLabel", text = tileName)
-                        title.grid(row = 0, column = 0, columnspan = 19)
+                        Title = ttk.Label(container, style = "Header.TLabel", text = tileName)
+                        Title.grid(row = 0, column = 0, columnspan = 19)
 
                         fgTitle = ttk.Label(container, style = "Subheading.TLabel", text = "FG :")
                         fgTitle.grid(row = 1, column = 0)
@@ -442,17 +464,19 @@ class GeneralSettings(SettingsMenu):
                 self.reloadButton = tk.Button(self, text = "Reload Colours", command = self.updateColours)
                 self.reloadButton.grid(row = 100, column = 0)
 
+
         def setColour(self, key, newColour, index):
-                print(key, newColour)
                 maze.tileColours[key][index] = newColour
 
                 with open("colours.pckl", "wb") as fileOut:
                         pickle.dump(maze.tileColours, fileOut)
 
+
         def updateColours(self):
                 for row in self.parent.maze.tiles:
                         for tile in row:
                                 tile.updateColour()
+
 
 class GenerationSettings(SettingsMenu):
         def __init__(self, parent):
@@ -463,8 +487,8 @@ class GenerationSettings(SettingsMenu):
                 super().__init__(parent)
                 self.parent = parent
 
-                # Load a title button with the given file
-                self.loadTitle("assets/generationTitle.png")
+                # Load a Title button with the given file
+                self.loadTitle("assets/settings/generationTitle.png")
 
                 self.container = tk.Frame(self)
                 self.container.grid(row = 10, column = 0, sticky = "S")
@@ -498,6 +522,7 @@ class GenerationSettings(SettingsMenu):
 
                 self.mazeSizeLabel.config(text = int(value))
 
+
 class SolverSettings(SettingsMenu):
         def __init__(self, parent):
                 """
@@ -506,7 +531,7 @@ class SolverSettings(SettingsMenu):
                 """
                 super().__init__(parent)
 
-                self.loadTitle("assets/solveTitle.png")
+                self.loadTitle("assets/settings/solverTitle.png")
 
                 solvers = (     
                                 "Recursive Backtracker",
@@ -516,8 +541,8 @@ class SolverSettings(SettingsMenu):
                 self.solverChoice.set(solvers[0])
                 self.solverChoice.grid(row = 2, column = 0, pady = 20)
 
-                self.autoStepEnabled = False
-                self.autoStepButton = ttk.Button(self, text = "Enable AutoStep", style = "Settings.TButton", command = self.toggleAutoStep)
+                self.autoStepEnabled = True
+                self.autoStepButton = ttk.Button(self, text = "Disable AutoStep", style = "Settings.TButton", command = self.toggleAutoStep)
                 self.autoStepButton.grid(row = 3, column = 0, pady = 20)
 
                 self.speedsFrame = tk.Frame(self)
@@ -526,33 +551,20 @@ class SolverSettings(SettingsMenu):
                 self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
                 self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
-                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.setSpeed(1), borderwidth = 0)
-                self.X1Button.grid(row = 1, column = 1)
+                self.speeds = [1, 2, 5, 10, 50, 100]
+                self.speedItems = {}
 
-                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
-                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.setSpeed(2), borderwidth = 0)
-                self.X2Button.grid(row = 1, column = 2)
+                for speed in self.speeds:
+                        image = tk.PhotoImage(file = "assets/speeds/X{}.png".format(speed))
+                        button = tk.Button(self.speedsFrame, image = image, command = lambda x=speed: self.parent.solver.setSpeed(x), borderwidth = 0)
+                        button.grid(row = 1, column = speed)
 
-                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
-                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.setSpeed(5), borderwidth = 0)
-                self.X5Button.grid(row = 1, column = 5)
-
-                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
-                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.setSpeed(10), borderwidth = 0)
-                self.X10Button.grid(row = 1, column = 10)
-
-                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
-                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.setSpeed(50), borderwidth = 0)
-                self.X50Button.grid(row = 1, column = 50)
-
-                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
-                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.setSpeed(100), borderwidth = 0)
-                self.X100Button.grid(row = 1, column = 100)
+                        self.speedItems.update({speed: {"image": image, "button": button}})
 
                 self.speed = tk.DoubleVar()
                 self.speed.set(1)
                 self.speed.trace("w", self.updateLabel)
+
 
         def toggleAutoStep(self):
                 if self.autoStepEnabled:
@@ -562,8 +574,10 @@ class SolverSettings(SettingsMenu):
                         self.autoStepButton["text"] = "Disable AutoStep"
                         self.autoStepEnabled = True
 
+
         def setSpeed(self, newSpeed):
                 self.speed.set(newSpeed)
+
 
         def updateLabel(self, *args):
                 self.speedDisplay.config(text = "Current Speed: X{}".format(int(self.speed.get())))
@@ -574,22 +588,22 @@ class SolverMenu(SettingsMenu):
         def __init__(self, parent):
                 super().__init__(parent, False)
 
-                self.loadTitle("assets/solveTitle.png")
+                self.loadTitle("assets/settings/solverTitle.png")
 
                 self.autoStepControls = tk.Frame(self)
                 self.autoStepControls.grid(row = 1, column = 0)
 
                 buttons = {"playButton" : self.startAutoStep, "pauseButton" : self.stopAutoStep, "stopButton" : self.stopSolve}
                 
-                self.play = tk.PhotoImage(file = "assets/playButton.png")
+                self.play = tk.PhotoImage(file = "assets/solving/playButton.png")
                 self.playButton = tk.Button(self.autoStepControls, image = self.play, command = self.startAutoStep, borderwidth = 0)
                 self.playButton.grid(row = 0, column = 0)
 
-                self.pause = tk.PhotoImage(file = "assets/pauseButton.png")
+                self.pause = tk.PhotoImage(file = "assets/solving/pauseButton.png")
                 self.pauseButton = tk.Button(self.autoStepControls, image = self.pause, command = self.stopAutoStep, borderwidth = 0)
                 self.pauseButton.grid(row = 0, column = 1)
 
-                self.stop = tk.PhotoImage(file = "assets/stopButton.png")
+                self.stop = tk.PhotoImage(file = "assets/solving/stopButton.png")
                 self.stopButton = tk.Button(self.autoStepControls, image = self.stop, command = self.stopSolve, borderwidth = 0)
                 self.stopButton.grid(row = 0, column = 2)
 
@@ -599,29 +613,15 @@ class SolverMenu(SettingsMenu):
                 self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
                 self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
-                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.parent.solver.setSpeed(1), borderwidth = 0)
-                self.X1Button.grid(row = 1, column = 1)
+                self.speeds = [1, 2, 5, 10, 50, 100]
+                self.speedItems = {}
 
-                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
-                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.parent.solver.setSpeed(2), borderwidth = 0)
-                self.X2Button.grid(row = 1, column = 2)
+                for speed in self.speeds:
+                        image = tk.PhotoImage(file = "assets/speeds/X{}.png".format(speed))
+                        button = tk.Button(self.speedsFrame, image = image, command = lambda x=speed: self.parent.solver.setSpeed(x), borderwidth = 0)
+                        button.grid(row = 1, column = speed)
 
-                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
-                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.parent.solver.setSpeed(5), borderwidth = 0)
-                self.X5Button.grid(row = 1, column = 5)
-
-                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
-                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.parent.solver.setSpeed(10), borderwidth = 0)
-                self.X10Button.grid(row = 1, column = 10)
-
-                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
-                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.parent.solver.setSpeed(50), borderwidth = 0)
-                self.X50Button.grid(row = 1, column = 50)
-
-                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
-                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.parent.solver.setSpeed(100), borderwidth = 0)
-                self.X100Button.grid(row = 1, column = 100)
+                        self.speedItems.update({speed: {"image": image, "button": button}})
 
                 self.stepButton = tk.Button(self, width = 10, height = 2, text = "Step", command = self.step)
                 self.stepButton.grid(row = 10, column = 0, pady = 5)
@@ -639,8 +639,10 @@ class SolverMenu(SettingsMenu):
                 self.parent.solver.autorun = True
                 self.parent.solver.step()
 
+
         def stopAutoStep(self):
                 self.parent.solver.autorun = False
+
 
         def stopSolve(self):
                 if mb.askyesno("End Solve?", "Are you sure you want to stop the current solve?"):
@@ -651,8 +653,10 @@ class SolverMenu(SettingsMenu):
 
                         self.parent.after(1000, self.parent.maze.unvisitTiles)
 
+
         def step(self):
                 self.parent.solver.step() if not self.parent.solver.autorun else mb.showerror("ERROR", "Cannot force step whilst autorunning")
+                
                 
         def updateLabel(self, newValue):
                 self.autoStepDelayLabel.config(text = "{:.3f}".format(float(newValue)))

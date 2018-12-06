@@ -255,6 +255,7 @@ class Maze:
         self.canvas.bind("<Shift-Button-1>", lambda event: self.setTile(event, tileTypes.START))
         self.canvas.bind("<Shift-Button-3>", lambda event: self.setTile(event, tileTypes.END))
 
+
     def toFile(self, filePath = "saves/save.p"):
         """
         Method for saving the current maze to a file.
@@ -276,7 +277,8 @@ class Maze:
                 data["tiles"][x][y] = self.tiles[x][y].toString()
         # Dump the serialized data to the given filepath.
         pickle.dump(data, open(filePath, "wb"))
-        
+      
+
     def fromFile(self, filePath):
         """
         Method for loading a maze from a file.
@@ -304,6 +306,9 @@ class Maze:
                         currentItem["x"], currentItem["y"],
                         currentItem["size"],
                         currentItem["tileType"]))
+
+
+        self.parent.title(self.parent.Title+" - "+filePath)
     
 
     def setTile(self, event, tileType = tileTypes.WALL):
