@@ -1,19 +1,9 @@
 from solvers.solver import SolverTemplate, Stack
 import random
-import tkinter.messagebox as mb
 
 class Solver(SolverTemplate):
         def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
-                # Store the mazes start and end tiles.
-                self.start = self.maze.start
-                self.end = self.maze.end
-
-                # If the start or end do not exist, the user messed up so we can't start the solver.
-                if (self.start == None) or (self.end == None):
-                        self.maze.solving = False
-                        mb.showerror("ERROR", "Could not find either start or end of maze, please ensure both of these are placed on the screen.")
-
                 # Set the starting tile to the mazes start.
                 self.currentTile = self.start
 
@@ -25,8 +15,9 @@ class Solver(SolverTemplate):
                         self.maze.parent.after(100, self.step)
 
 
-
-        def step(self):
+        def step(self, force = False):
+                if not self.autorun and not force:
+                        return
                 # Get the current tiles neighbours, not including walls or tiles that have already been visited.
                 tileNeighbours = self.currentTile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
 
