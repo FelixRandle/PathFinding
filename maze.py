@@ -16,7 +16,7 @@ class tileTypes(IntEnum):
     FOUND_PATH = 5
     START = 10
     END = 11
-    
+
 # Dictionary of colours to use for different tiles, background then foreground
 tileColours = { tileTypes.WALL: ["black", "black"],
         tileTypes.PATH: ["light grey", "white"],
@@ -36,179 +36,10 @@ try:
 except FileNotFoundError:
     pass
 
-tileNames = {
-    tileTypes.WALL: "Wall",
-    tileTypes.WALL: "Path",
-    tileTypes.WALL: "Visited Path",
-    tileTypes.WALL: "Found Path",
-    tileTypes.WALL: "Start",
-    tileTypes.WALL: "End"   
-}
-
-class Tile:
-    """Class used for the tiles of a maze."""
-    def __init__(self, parent, maze, xPos, yPos, size, tileType, border = 0.1):
-        """ 
-        Arguments:
-            parent -- the parent canvas that the tile will use.
-            xPos -- The x grid coordinate of the tile.
-            yPos -- The y grid coordinate of the tile.
-            size -- The width and height that the tile should be.
-            tileType -- Used to define what the tile should appear as.
-            border -- Used to define the percentage of the size that the border should be. (Default 0.1)
-        """
-        self.parent = parent
-        self.maze = maze
-        self.x = xPos
-        self.y = yPos
-        # X and Y are then translated to pixel coordinates.
-        self.xPos = xPos * size
-        self.yPos = yPos * size
-        self.size = size
-        self.tileType = tileType
-        self.borderSize = int(self.size * border)
-
-        """
-        Additional Variables:
-            visitCount -- how many times this tile has been visited.
-            neighbours --  A list of all neighbours of this tile and information about them.
-            backgroundColour -- The background colour of the tile.
-            colour -- The foreground colour of the tile. At smaller tile sizes this is the sole colour.
-            canvasRect -- The canvas rectangle used to display the Tile on the gui.
-        """
-        self.visitCount = 0
-        self.neighbours = []
-        self.backgroundColour = tileColours[tileType][0]
-        self.colour = tileColours[tileType][1]
-        # Create the canvas rectangle using given parameters
-        self.canvasRect = parent.create_rectangle(int(self.xPos + (self.borderSize / 2)), int(self.yPos + (self.borderSize / 2)), 
-            int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)), 
-            fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
-
-        if self.tileType == tileTypes.START:
-            self.maze.start = self
-        elif self.tileType == tileTypes.END:
-            self.maze.end = self
-
-    def findNeighbours(self, distance = 2, blockVisited = False, blockWalls = False):
-        """
-        Method for finding the current tiles neighbours.
-        Find those two away as all walls are placed on even coordinates
-        """
-        # List of relative neighbours based on given distances. 
-        relativeNeighbours = [               [0, distance],
-                    [-distance, 0],           [distance, 0],
-                             [0, -distance]
-        ]
-
-        #Loop through the positions of neighbours if they are on the Maze
-        self.neighbours = []
-        for coords in relativeNeighbours:
-            # If inside the maze
-            if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
-                # If not visited
-                if (blockVisited and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].visitCount < 1) or (not blockVisited):
-                    # If not a wall
-                    if (blockWalls and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].tileType != tileTypes.WALL) or (not blockWalls):
-                        self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
-
-        return self.neighbours
-            
-    def toString(self):
-        """
-        Method for translating our Tile object to a string so that it can be stored in a file.
-        """
-        data = {
-            "x": self.x,
-            "y": self.y,
-            "size": self.size,
-            "tileType": self.tileType,
-            }
-        return data
-
-    def updateColour(self):
-        fill = tileColours[self.tileType][1]
-        outline = tileColours[self.tileType][0]
-
-        self.parent.itemconfig(self.canvasRect, fill = fill)
-        self.parent.itemconfig(self.canvasRect, outline = outline)
-
-    def changeType(self, newType = tileTypes.PATH):
-        """
-        Internal method for changing the tile type. This should not be used by generators or solvers.
-        Arguments:
-            newType -- The new tileType that it should be changed to. Defaults to PATH.
-        """
-            
-        # Change the tileType of the tile.
-        self.tileType = newType
-        # Change the tile colours to reflect the newly desired tile.
-        self.updateColour()
-
-    def setWall(self):
-        """
-        Set the current tile to a WALL tile.
-        """
-        self.changeType(newType = tileTypes.WALL)
-
-    def setPath(self):
-        """
-        Set the current tile to a PATH tile
-        """
-        self.changeType(newType = tileTypes.PATH)
-
-    def setVisited(self):
-        """
-        Set the current tile to a PATH_VISITED_* tile.
-        """
-
-        if self.tileType not in (tileTypes.START, tileTypes.END):
-            if self.visitCount > 0:
-                tileType = tileTypes.PATH_VISITED_TWICE
-            else:
-                tileType = tileTypes.PATH_VISITED_ONCE
-        else:
-            return
-
-        self.changeType(newType = tileType)
-        
-        self.visitCount += 1
-
-    def setRoute(self):
-        """
-        Set the current tile to a FOUND_PATH tile.
-        """
-        if self.tileType not in (tileTypes.START, tileTypes.END):
-            self.changeType(newType = tileTypes.FOUND_PATH)
-
-    def setStart(self):
-        """
-        Set the current tile to a START tile.
-        """
-        # Tile can be None at start so avoid trying to call function on None.
-        if self.maze.start != None:
-            # Set the current start to a WALL
-            self.maze.start.setWall()
-        # Change the mazes start point.
-        self.maze.start = self
-        self.changeType(newType = tileTypes.START)
-
-    def setEnd(self):
-        """
-        Set the current tile to an END tile.
-        """
-        # Tile can be None at start so avoid trying to call function on None.
-        if self.maze.end != None:
-            # Set the current end to a WALL
-            self.maze.end.setWall()
-        # Change the mazes end point.
-        self.maze.end = self
-        self.changeType(newType = tileTypes.END)
-
 class Maze:
     """Class used to hold maze information."""
     def __init__(self, parent, size = 15, canvasSize = 600):
-        """ 
+        """
         Arguments:
             parent -- The parent from tkinter, either Frame or Tk object.
             size -- The width and height of the maze. (Default 5)
@@ -277,7 +108,7 @@ class Maze:
                 data["tiles"][x][y] = self.tiles[x][y].toString()
         # Dump the serialized data to the given filepath.
         pickle.dump(data, open(filePath, "wb"))
-      
+
 
     def fromFile(self, filePath):
         """
@@ -307,9 +138,6 @@ class Maze:
                         currentItem["size"],
                         currentItem["tileType"]))
 
-
-        self.parent.title(self.parent.Title+" - "+filePath)
-    
 
     def setTile(self, event, tileType = tileTypes.WALL):
         """
@@ -348,3 +176,166 @@ class Maze:
                 if tile.tileType in (tileTypes.PATH_VISITED_ONCE, tileTypes.PATH_VISITED_TWICE, tileTypes.FOUND_PATH):
                     tile.setPath()
 
+
+class Tile:
+    """Class used for the tiles of a maze."""
+    def __init__(self, parent, maze, xPos, yPos, size, tileType, border = 0.1):
+        """
+        Arguments:
+            parent -- the parent canvas that the tile will use.
+            xPos -- The x grid coordinate of the tile.
+            yPos -- The y grid coordinate of the tile.
+            size -- The width and height that the tile should be.
+            tileType -- Used to define what the tile should appear as.
+            border -- Used to define the percentage of the size that the border should be. (Default 0.1)
+        """
+        self.parent = parent
+        self.maze = maze
+        self.x = xPos
+        self.y = yPos
+        # X and Y are then translated to pixel coordinates.
+        self.xPos = xPos * size
+        self.yPos = yPos * size
+        self.size = size
+        self.tileType = tileType
+        self.borderSize = int(self.size * border)
+
+        """
+        Additional Variables:
+            visitCount -- how many times this tile has been visited.
+            neighbours --  A list of all neighbours of this tile and information about them.
+            backgroundColour -- The background colour of the tile.
+            colour -- The foreground colour of the tile. At smaller tile sizes this is the sole colour.
+            canvasRect -- The canvas rectangle used to display the Tile on the gui.
+        """
+        self.visitCount = 0
+        self.neighbours = []
+        self.backgroundColour = tileColours[tileType][0]
+        self.colour = tileColours[tileType][1]
+        # Create the canvas rectangle using given parameters
+        self.canvasRect = parent.create_rectangle(int(self.xPos + (self.borderSize / 2)), int(self.yPos + (self.borderSize / 2)),
+            int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)),
+            fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
+
+        if self.tileType == tileTypes.START:
+            self.maze.start = self
+        elif self.tileType == tileTypes.END:
+            self.maze.end = self
+
+    def findNeighbours(self, distance = 2, blockVisited = False, blockWalls = False):
+        """
+        Method for finding the current tiles neighbours.
+        Find those two away as all walls are placed on even coordinates
+        """
+        # List of relative neighbours based on given distances.
+        relativeNeighbours = [               [0, distance],
+                    [-distance, 0],           [distance, 0],
+                             [0, -distance]
+        ]
+
+        #Loop through the positions of neighbours if they are on the Maze
+        self.neighbours = []
+        for coords in relativeNeighbours:
+            # If inside the maze
+            if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
+                # If not visited
+                if (blockVisited and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].visitCount < 1) or (not blockVisited):
+                    # If not a wall
+                    if (blockWalls and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].tileType != tileTypes.WALL) or (not blockWalls):
+                        self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
+
+        return self.neighbours
+
+    def toString(self):
+        """
+        Method for translating our Tile object to a string so that it can be stored in a file.
+        """
+        data = {
+            "x": self.x,
+            "y": self.y,
+            "size": self.size,
+            "tileType": self.tileType,
+            }
+        return data
+
+    def updateColour(self):
+        fill = tileColours[self.tileType][1]
+        outline = tileColours[self.tileType][0]
+
+        self.parent.itemconfig(self.canvasRect, fill = fill)
+        self.parent.itemconfig(self.canvasRect, outline = outline)
+
+    def changeType(self, newType = tileTypes.PATH):
+        """
+        Internal method for changing the tile type. This should not be used by generators or solvers.
+        Arguments:
+            newType -- The new tileType that it should be changed to. Defaults to PATH.
+        """
+        tileBuffer = None
+        if self.tileType == tileTypes.START:
+            tileBuffer = self.maze.start
+            self.maze.start = None
+        elif self.tileType == tileTypes.END:
+            tileBuffer = self.maze.end
+            self.maze.end = None
+
+        # Change the tileType of the tile.
+        self.tileType = newType
+        # Change the tile colours to reflect the newly desired tile.
+        self.updateColour()
+
+        if tileBuffer != None:
+            print(tileBuffer)
+            tileBuffer.setWall()
+
+    def setWall(self):
+        """
+        Set the current tile to a WALL tile.
+        """
+        self.changeType(newType = tileTypes.WALL)
+
+    def setPath(self):
+        """
+        Set the current tile to a PATH tile
+        """
+        self.changeType(newType = tileTypes.PATH)
+
+    def setVisited(self):
+        """
+        Set the current tile to a PATH_VISITED_* tile.
+        """
+
+        if self.tileType not in (tileTypes.START, tileTypes.END):
+            if self.visitCount > 0:
+                tileType = tileTypes.PATH_VISITED_TWICE
+            else:
+                tileType = tileTypes.PATH_VISITED_ONCE
+        else:
+            return
+
+        self.changeType(newType = tileType)
+
+        self.visitCount += 1
+
+    def setRoute(self):
+        """
+        Set the current tile to a FOUND_PATH tile.
+        """
+        if self.tileType not in (tileTypes.START, tileTypes.END):
+            self.changeType(newType = tileTypes.FOUND_PATH)
+
+    def setStart(self):
+        """
+        Set the current tile to a START tile.
+        """
+        # Change the mazes start point.
+        self.changeType(newType = tileTypes.START)
+        self.maze.start = self
+
+    def setEnd(self):
+        """
+        Set the current tile to an END tile.
+        """
+        # Change the mazes end point.
+        self.changeType(newType = tileTypes.END)
+        self.maze.end = self
