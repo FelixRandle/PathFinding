@@ -2,13 +2,19 @@
 
 block_cipher = None
 
-assetData = [('./assets', 'assets/')]
+assetData = [('./assets/fonts', 'assets/fonts/'),
+              ('assets/home', 'assets/home/'),
+              ('assets/settings', 'assets/settings/'),
+              ('assets/solving', 'assets/solving/'),
+              ('assets/speeds', 'assets/speeds/'),
+              ('colours.pckl', '.'),
+              ('userData.db', '.')]
 
 a = Analysis(['main.py'],
              pathex=['.'],
              binaries=[],
              datas=assetData,
-             hiddenimports=[],
+             hiddenimports=['application.py'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
