@@ -11,12 +11,18 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 import re
 # OS library used for file paths and getting current directories.
 import os
+import sys
 
 """
 BUGS:
         MAJOR - Editing when a maze is loaded in is broken as f-ck.
-        MINOR - Slight visual blank area at bottom of maze on occasion.    
+        MINOR - Slight visual blank area at bottom of maze on occasion.
 """
+
+def getResourcePath(relativePath):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relativePath)
+    return os.path.join(os.path.abspath("."), relativePath)
 
 class Application(tk.Tk):
         """
@@ -35,7 +41,7 @@ class Application(tk.Tk):
                 # Set our programs icon for the top left.
                 # Disabled for Linux development. Re-enable for deployment.
                 #self.iconbitmap(cd+"/assets/maze.ico")
-                        
+
                 # Stop the user from resizing the screen.
                 self.screenSize = 750
                 # Take away 5 to account for border of screen so maze fits properly
@@ -67,7 +73,7 @@ class Application(tk.Tk):
                 self.menus[GenerationSettings] = GenerationSettings(self)
                 self.menus[SolverMenu] = SolverMenu(self)
 
-                # Load Maze 
+                # Load Maze
                 self.loadMaze()
 
                 # Load in Top Menu
@@ -94,7 +100,7 @@ class Application(tk.Tk):
 
                 # Set the default background for all widgets to a specific colour
                 self.style.configure(".", background = "#d9d9d9")
-                
+
                 # Load in styles for any situation we need.
                 self.style.configure("Header.TLabel", font = ("Helvetica", 15, "italic"))
 
@@ -124,15 +130,15 @@ class Application(tk.Tk):
                 self.menubar.add_cascade(label = "File", menu = fileMenu)
 
                 self.menubar.add_command(label = "Generate Maze", command = lambda: self.changeMenu(GenerationSettings))
-                
+
                 # If we are currently solving a maze, this brings up the Solver Menu, otherwise it brings up the Solver Settings.
                 self.menubar.add_command(label = "Solve Current Maze", command = lambda: self.changeMenu(SolverMenu) if self.maze.solving else self.changeMenu(SolverSettings))
 
                 editMenu = tk.Menu(self.menubar, tearoff = False)
                 editMenu.add_checkbutton(label = "Toggle edit mode", onvalue = True, offvalue = False, variable = self.frames[MazeScreen].editMode)
-                
+
                 self.menubar.add_cascade(label = "Edit", menu = editMenu)
-                
+
 
         def changeFrame(self, newFrame):
                 """
@@ -154,7 +160,7 @@ class Application(tk.Tk):
                 frame = self.frames[newFrame]
                 #Place our new frame onto the grid
                 frame.grid(row = 0, column = 0)
-                
+
 
         def changeMenu(self, newMenu):
                 """
@@ -180,7 +186,7 @@ class Application(tk.Tk):
                 Arguments:
                         NONE
                 """
-                # Open a file save dialog for the user. 
+                # Open a file save dialog for the user.
                 filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
                 # If the file path fits the form of '*.maz' then save it. Otherwise don't.
                 if re.match(".+(?i)(.maz)\\b",filePath) != None:
@@ -254,7 +260,7 @@ class Application(tk.Tk):
                 if self.maze.solving:
                         mb.showerror("ERROR", "Maze already being solved")
                         return
-                
+
                 # Copy the GenerationSettings for easier referencing.
                 settings = self.menus[SolverSettings]
 
@@ -295,19 +301,19 @@ class HomeScreen(tk.Frame):
                 Arguments:
                         NONE
                 """
-                self.titleImage = tk.PhotoImage(file = "assets/homeTitle.png")
+                self.titleImage = tk.PhotoImage(file = getResourcePath("assets/homeTitle.png"))
                 self.title = ttk.Label(self, image = self.titleImage, text = "Path Finding Thing", style = "Title.TLabel")
                 self.title.grid(row = 0, column = 0, pady = 50)
 
-                self.settingsImage = tk.PhotoImage(file = "assets/homeSettings.png")
+                self.settingsImage = tk.PhotoImage(file = getResourcePath("assets/homeSettings.png"))
                 self.settingsButton = tk.Button(self, image = self.settingsImage, command = lambda: self.parent.changeMenu(GenerationSettings), borderwidth = 0)
                 self.settingsButton.grid(row = 0, column = 0, sticky = "NE")
 
-                self.generateImage = tk.PhotoImage(file = "assets/homeGenerate.png")
+                self.generateImage = tk.PhotoImage(file = getResourcePath("assets/homeGenerate.png"))
                 self.generateButton = tk.Button(self, image = self.generateImage, command = self.generateMaze, borderwidth = 0)
                 self.generateButton.grid(row = 1, column = 0, pady = 30)
 
-                self.loadImage = tk.PhotoImage(file = "assets/homeLoad.png")
+                self.loadImage = tk.PhotoImage(file = getResourcePath("assets/homeLoad.png"))
                 self.loadButton = tk.Button(self, image = self.loadImage, command = self.parent.loadMazeFile, borderwidth = 0)
                 self.loadButton.grid(row = 2, column = 0, pady = 30)
 
@@ -346,7 +352,7 @@ class SettingsMenu(tk.Frame):
                 super().__init__()
                 self.parent = parent
 
-                self.exitImage = tk.PhotoImage(file = "assets/settingsExit.png")
+                self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settingsExit.png"))
                 self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: parent.changeMenu(None), borderwidth = 0)
                 self.exitButton.grid(row = 0, column = 0, sticky = "NE")
 
@@ -368,7 +374,7 @@ class GenerationSettings(SettingsMenu):
                 self.parent = parent
 
                 # Load a title button with the given file
-                self.loadTitle("assets/generationTitle.png")
+                self.loadTitle(getResourcePath("assets/generationTitle.png"))
 
                 ttk.Label(self, text = "Generation Algorithm", style = "Header.TLabel").grid(row = 1, column = 0, pady = 20)
 
@@ -388,8 +394,8 @@ class GenerationSettings(SettingsMenu):
 
                 self.mazeSizeLabel = ttk.Label(self, text = 51, style = "Header.TLabel")
                 self.mazeSizeLabel.grid(row = 5, column = 0, pady = 20)
-                
-                self.generationButtonImage = tk.PhotoImage(file = "assets/generationButton.png")
+
+                self.generationButtonImage = tk.PhotoImage(file = getResourcePath("assets/generationButton.png"))
                 self.generateButton = tk.Button(self, image = self.generationButtonImage, command = self.generateMaze, borderwidth = 0)
                 self.generateButton.grid(row = 100, column = 0, pady = 20)
 
@@ -417,9 +423,9 @@ class SolverSettings(SettingsMenu):
                 """
                 super().__init__(parent)
 
-                self.loadTitle("assets/solveTitle.png")
+                self.loadTitle(getResourcePath("assets/solveTitle.png"))
 
-                solvers = (     
+                solvers = (
                                 "Recursive Backtracker",
                                 )
 
@@ -437,27 +443,27 @@ class SolverSettings(SettingsMenu):
                 self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
                 self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
+                self.X1 = tk.PhotoImage(file = getResourcePath("assets/SpeedX1.png"))
                 self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.setSpeed(1), borderwidth = 0)
                 self.X1Button.grid(row = 1, column = 1)
 
-                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
+                self.X2 = tk.PhotoImage(file = getResourcePath("assets/SpeedX2.png"))
                 self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.setSpeed(2), borderwidth = 0)
                 self.X2Button.grid(row = 1, column = 2)
 
-                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
+                self.X5 = tk.PhotoImage(file = getResourcePath("assets/SpeedX5.png"))
                 self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.setSpeed(5), borderwidth = 0)
                 self.X5Button.grid(row = 1, column = 5)
 
-                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
+                self.X10 = tk.PhotoImage(file = getResourcePath("assets/SpeedX10.png"))
                 self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.setSpeed(10), borderwidth = 0)
                 self.X10Button.grid(row = 1, column = 10)
 
-                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
+                self.X50 = tk.PhotoImage(file = getResourcePath("assets/SpeedX50.png"))
                 self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.setSpeed(50), borderwidth = 0)
                 self.X50Button.grid(row = 1, column = 50)
 
-                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
+                self.X100 = tk.PhotoImage(file = getResourcePath("assets/SpeedX100.png"))
                 self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.setSpeed(100), borderwidth = 0)
                 self.X100Button.grid(row = 1, column = 100)
 
@@ -465,7 +471,7 @@ class SolverSettings(SettingsMenu):
                 self.speed.set(1)
                 self.speed.trace("w", self.updateLabel)
 
-                self.solveButtonImage = tk.PhotoImage(file = "assets/solveButton.png")
+                self.solveButtonImage = tk.PhotoImage(file = getResourcePath("assets/solveButton.png"))
                 self.solveButton = tk.Button(self, image = self.solveButtonImage, command = self.solveMaze, borderwidth = 0)
                 self.solveButton.grid(row = 100, column = 0, pady = 20)
 
@@ -486,28 +492,28 @@ class SolverSettings(SettingsMenu):
 
         def solveMaze(self):
                 self.parent.solveMaze()
-                
-                        
+
+
 class SolverMenu(SettingsMenu):
         def __init__(self, parent):
                 super().__init__(parent)
 
-                self.loadTitle("assets/solveTitle.png")
+                self.loadTitle(getResourcePath("assets/solveTitle.png"))
 
                 self.autoStepControls = tk.Frame(self)
                 self.autoStepControls.grid(row = 1, column = 0)
 
                 buttons = {"playButton" : self.startAutoStep, "pauseButton" : self.stopAutoStep, "stopButton" : self.stopSolve}
-                
-                self.play = tk.PhotoImage(file = "assets/playButton.png")
+
+                self.play = tk.PhotoImage(file = getResourcePath("assets/playButton.png"))
                 self.playButton = tk.Button(self.autoStepControls, image = self.play, command = self.startAutoStep, borderwidth = 0)
                 self.playButton.grid(row = 0, column = 0)
 
-                self.pause = tk.PhotoImage(file = "assets/pauseButton.png")
+                self.pause = tk.PhotoImage(file = getResourcePath("assets/pauseButton.png"))
                 self.pauseButton = tk.Button(self.autoStepControls, image = self.pause, command = self.stopAutoStep, borderwidth = 0)
                 self.pauseButton.grid(row = 0, column = 1)
 
-                self.stop = tk.PhotoImage(file = "assets/stopButton.png")
+                self.stop = tk.PhotoImage(file = getResourcePath("assets/stopButton.png"))
                 self.stopButton = tk.Button(self.autoStepControls, image = self.stop, command = self.stopSolve, borderwidth = 0)
                 self.stopButton.grid(row = 0, column = 2)
 
@@ -517,36 +523,36 @@ class SolverMenu(SettingsMenu):
                 self.speedDisplay = ttk.Label(self.speedsFrame, text="Current Speed: X1", style="Subheading.TLabel")
                 self.speedDisplay.grid(row = 0 , column = 0, columnspan = 1000)
 
-                self.X1 = tk.PhotoImage(file = "assets/SpeedX1.png")
-                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.parent.solver.setSpeed(1), borderwidth = 0)
+                self.X1 = tk.PhotoImage(file = getResourcePath("assets/SpeedX1.png"))
+                self.X1Button = tk.Button(self.speedsFrame, image = self.X1, command = lambda:self.setSpeed(1), borderwidth = 0)
                 self.X1Button.grid(row = 1, column = 1)
 
-                self.X2 = tk.PhotoImage(file = "assets/SpeedX2.png")
-                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.parent.solver.setSpeed(2), borderwidth = 0)
+                self.X2 = tk.PhotoImage(file = getResourcePath("assets/SpeedX2.png"))
+                self.X2Button = tk.Button(self.speedsFrame, image = self.X2, command = lambda:self.setSpeed(2), borderwidth = 0)
                 self.X2Button.grid(row = 1, column = 2)
 
-                self.X5 = tk.PhotoImage(file = "assets/SpeedX5.png")
-                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.parent.solver.setSpeed(5), borderwidth = 0)
+                self.X5 = tk.PhotoImage(file = getResourcePath("assets/SpeedX5.png"))
+                self.X5Button = tk.Button(self.speedsFrame, image = self.X5, command = lambda:self.setSpeed(5), borderwidth = 0)
                 self.X5Button.grid(row = 1, column = 5)
 
-                self.X10 = tk.PhotoImage(file = "assets/SpeedX10.png")
-                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.parent.solver.setSpeed(10), borderwidth = 0)
+                self.X10 = tk.PhotoImage(file = getResourcePath("assets/SpeedX10.png"))
+                self.X10Button = tk.Button(self.speedsFrame, image = self.X10, command = lambda:self.setSpeed(10), borderwidth = 0)
                 self.X10Button.grid(row = 1, column = 10)
 
-                self.X50 = tk.PhotoImage(file = "assets/SpeedX50.png")
-                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.parent.solver.setSpeed(50), borderwidth = 0)
+                self.X50 = tk.PhotoImage(file = getResourcePath("assets/SpeedX50.png"))
+                self.X50Button = tk.Button(self.speedsFrame, image = self.X50, command = lambda:self.setSpeed(50), borderwidth = 0)
                 self.X50Button.grid(row = 1, column = 50)
 
-                self.X100 = tk.PhotoImage(file = "assets/SpeedX100.png")
-                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.parent.solver.setSpeed(100), borderwidth = 0)
+                self.X100 = tk.PhotoImage(file = getResourcePath("assets/SpeedX100.png"))
+                self.X100Button = tk.Button(self.speedsFrame, image = self.X100, command = lambda:self.setSpeed(100), borderwidth = 0)
                 self.X100Button.grid(row = 1, column = 100)
 
                 self.stepButton = tk.Button(self, width = 10, height = 2, text = "Step", command = self.step)
                 self.stepButton.grid(row = 10, column = 0, pady = 5)
 
                 self.advancedInfo = tk.IntVar()
-                self.advancedInfoButton = ttk.Checkbutton(self, text = "Show Advanced Information?", variable=self.advancedInfo)                
-                self.advancedInfoButton.grid(row = 11, column = 0, pady = 5)        
+                self.advancedInfoButton = ttk.Checkbutton(self, text = "Show Advanced Information?", variable=self.advancedInfo)
+                self.advancedInfoButton.grid(row = 11, column = 0, pady = 5)
 
         def startAutoStep(self):
                 self.parent.solver.autorun = True
@@ -566,7 +572,7 @@ class SolverMenu(SettingsMenu):
 
         def step(self):
                 self.parent.solver.step() if not self.parent.solver.autorun else mb.showerror("ERROR", "Cannot force step whilst autorunning")
-                
+
         def updateLabel(self, newValue):
                 self.autoStepDelayLabel.config(text = "{:.3f}".format(float(newValue)))
                 self.parent.solver.delay = float(newValue)
