@@ -1,1 +1,1 @@
-pyinstaller --distpath . --onefile --name PathFinding --noconsole --icon ./assets/maze.ico main.py
+pyinstaller PathFinding.spec
