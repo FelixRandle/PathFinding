@@ -19,7 +19,6 @@ def countlines(start, lines=0, header=True, begin_start=None):
                     print('{:>10} |{:>10} | {:<22}'.format(
                             newlines, lines, thing))
 
-
     for thing in os.listdir(start):
         thing = os.path.join(start, thing)
         if os.path.isdir(thing):

@@ -3,6 +3,7 @@ import sqlite3 as sql
 class Database:
     def __init__(self, coloursInfo):
         self.db =  sql.connect("userData.db")
+        self.db.row_factory = sql.Row
         self.cursor = self.db.cursor()
 
         self.coloursInfo = coloursInfo
@@ -36,35 +37,9 @@ class Database:
                     self.cursor.execute("ALTER TABLE COLOURS ADD {} VARCHAR DEFAULT {}".format(tileName, coloursInfo[key]))
                     self.db.commit()
                 except sql.OperationalError:
-                    print("Duplicate "+tileName)
+                    pass
 
-    def addUser(self, userName):
-        try:
-            self.cursor.execute("""
-                INSERT INTO USERS
-                (username)
-                VALUES
-                (?)
-            """, (userName,))
-
-            self.db.commit()
-        except sql.IntegrityError:
-            pass
-
-        try:
-            self.cursor.execute("""
-                INSERT INTO
-                COLOURS
-                (userID)
-                VALUES
-                (?)
-            """, (self.user, ))
-        except sql.IntegrityError:
-            pass
-
-        self.db.commit()
-
-    def loginUser(self, username):
+    def getUserID(self, username):
         self.cursor.execute("""
             SELECT userID FROM
             USERS
@@ -74,23 +49,91 @@ class Database:
         result = self.cursor.fetchone()
         if result != None:
             return result[0]
-        else:
-            raise Exception("loginUser should return userID, returned {}".format(result))
 
-    def getUserColours(self):
+
+    def addUser(self, username):
+        try:
+            self.cursor.execute("""
+                INSERT INTO USERS
+                (username)
+                VALUES
+                (?)
+            """, (username,))
+
+            self.db.commit()
+        except sql.IntegrityError:
+            pass
+
+        UID = self.getUserID(username)
+
+        try:
+            self.cursor.execute("""
+                INSERT INTO
+                COLOURS
+                (userID)
+                VALUES
+                (?)
+            """, (UID, ))
+            self.db.commit()
+        except sql.IntegrityError:
+            pass
+
+        return UID
+
+    def loginUser(self, username):
+        UID = self.getUserID(username)
+        if UID == None:
+            UID = self.addUser(username)
+        colours = self.getUserColours(UID)
+        return UID, colours
+
+    def getUserColours(self, userID = 0):
         returnColours = self.coloursInfo
 
-        if self.user == 0:
+        if userID == 0:
             return returnColours
 
         self.cursor.execute("""
             SELECT * FROM
             COLOURS
             WHERE userID = ?
-        """, (self.user, ))
+        """, (userID, ))
         userColours = self.cursor.fetchone()
+        for column in userColours.keys():
+            for key in returnColours:
+                if column != "userID" and key.name == column:
+                    coloursArr = ("".join( c for c in userColours[column] if c not in "[]' " ).split(","))
+                    returnColours.update({key: coloursArr})
 
-        #print(userColours)
+        return returnColours
+
+    def updateUserColours(self, userID, fieldName, index, newColour):
+        self.cursor.execute("""
+                            SELECT {} FROM
+                            COLOURS
+                            WHERE userID = ?
+                            """.format(fieldName), (userID, ))
+
+        result = self.cursor.fetchone()
+        coloursArr = ("".join( c for c in result[0] if c not in "[]' " ).split(","))
+        coloursArr[index] = newColour
+
+        self.cursor.execute("""
+                            UPDATE COLOURS
+                            SET {} = ?
+                            WHERE userID = ?
+                            """.format(fieldName), (str(coloursArr)[1:-1], userID,))
+
+
+        self.db.commit()
+
+        self.cursor.execute("""
+                            SELECT {} FROM
+                            COLOURS
+                            WHERE userID = ?
+                            """.format(fieldName), (userID, ))
+
+        result = self.cursor.fetchone()
 
 
 if __name__ == '__main__':
@@ -118,8 +161,5 @@ if __name__ == '__main__':
 
     db = Database(tileColours)
 
-    db.addUser("isdg")
-
-    db.loginUser("isdg")
-
-    db.getUserColours()
+    user, colours = db.loginUser("sadfjkfds")
+    print(user, colours)

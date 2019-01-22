@@ -27,15 +27,6 @@ tileColours = { tileTypes.WALL: ["black", "black"],
         tileTypes.FOUND_PATH: ["cyan", "magenta"]
         }
 
-try:
-    with open("colours.pckl", "rb") as fileIn:
-        try:
-            tileColours.update(pickle.load(fileIn))
-        except EOFError:
-            pass
-except FileNotFoundError:
-    pass
-
 class Maze:
     """Class used to hold maze information."""
     def __init__(self, parent, size = 15, canvasSize = 600):
@@ -147,7 +138,7 @@ class Maze:
         # If edit mode is enabled from top menu, continue.
         x = event.x
         y = event.y
-        if self.parent.editMode.get():
+        if self.parent.editMode:
             # Translate the pixel X and Y into values that we can access the list with.
             listX = int(x / (self.canvasSize / self.size))
             listY = int(y / (self.canvasSize / self.size))
