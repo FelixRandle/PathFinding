@@ -1,5 +1,6 @@
 from solvers.solver import SolverTemplate, Stack
 import random
+import tkinter.messagebox as mb
 
 class Solver(SolverTemplate):
         def __init__(self, *args, **kwargs):

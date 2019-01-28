@@ -2,19 +2,19 @@
 
 block_cipher = None
 
-assetData = [('./assets/fonts', 'assets/fonts/'),
+assetData = [('assets/fonts', 'assets/fonts/'),
               ('assets/home', 'assets/home/'),
               ('assets/settings', 'assets/settings/'),
               ('assets/solving', 'assets/solving/'),
               ('assets/speeds', 'assets/speeds/'),
-              ('colours.pckl', '.'),
+              ('assets/maze.ico', 'assets/maze.ico'),
               ('userData.db', '.')]
 
 a = Analysis(['main.py'],
-             pathex=['.'],
+             pathex=['./application'],
              binaries=[],
              datas=assetData,
-             hiddenimports=['application.py'],
+             hiddenimports=['application'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -38,4 +38,5 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False , icon='assets\\maze.ico')
+          console=True,
+          icon='assets/maze.ico')

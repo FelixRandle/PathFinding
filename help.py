@@ -8,6 +8,8 @@ class HelpMenu(tk.Toplevel):
         #self.resizable(False, False)
         self.geometry("400x400")
         self.grid_rowconfigure(0, weight = 1)
+        self.grid_columnconfigure(1, weight = 1)
+
 
         self.frames = []
 

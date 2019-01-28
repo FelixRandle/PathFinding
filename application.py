@@ -3,6 +3,7 @@ import maze
 import tkColourPicker
 from customFont import loadFont
 from database import Database
+from help import HelpMenu
 
 #External imports
 # Tkinter, ttk and messagebox libraries used for GUI aspects of the program.
@@ -21,7 +22,7 @@ import pickle
 
 """
 BUGS:
-	MAJOR - When solving maze, clicking generate maze will change view but continue to solve maze.
+	MAJOR - When maze is solved, it can then be continued from solving menus, causing issues
 	MINOR - Slight visual blank area at bottom of maze on occasion.
 """
 
@@ -49,17 +50,19 @@ class Application(tk.Tk):
 
 		# Set default background and foreground colours for all widgets.
 		self.tk_setPalette(background="#D9D9D9", foreground="#000000")
-		# Get the current directory.
-		cd = os.getcwd()
+
 		# Set our programs icon for the top left.
-		self.iconbitmap(cd+"/assets/maze.ico")
+		self.iconbitmap(getResourcePath("assets/maze.ico"))
 
 		# Load in Database
-		self.db = Database(maze.tileColours)
+		dirPath = os.path.join(os.environ['APPDATA'], 'PathFinding')
+		if not os.path.exists(dirPath):
+			os.makedirs(dirPath)
+		filePath = os.path.join(dirPath, "userData.db")
+		self.db = Database(filePath, maze.tileColours)
 
 		# Add current user
 		self.userID, colours = self.db.loginUser(os.getlogin())
-
 
 		# Stop the user from resizing the screen.
 		self.screenSize = 750
@@ -222,11 +225,9 @@ class Application(tk.Tk):
 		"""
 		# Open a file save dialog for the user.
 		filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
-		filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], Title = "Where to save file?")
-		print(filePath)
 
 		# If the file path fits the form of '*.maz' then save it. Otherwise don't.
-		if re.match(".+(?i)(.maz)\\b",filePath) != None:
+		if !filePath.endswith(".maz"):
 			self.maze.toFile(filePath)
 		else:
 			self.maze.toFile(filePath+".maz")
@@ -240,10 +241,13 @@ class Application(tk.Tk):
 		Arguments:
 			NONE
 		"""
+		if self.maze.solving:
+			mb.showerror("ERROR", "Maze already being solved")
+			return
 		# Display a dialog box to get file path.
 		filePath = askopenfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Please select a .MAZ file")
 		# Ensure the filepath has a .maz suffix and if not, show an error.
-		if re.match(".+(?i)(.maz)\\b",filePath) != None:
+		if filePath.endswith(".maz"):
 			self.maze.fromFile(filePath)
 			self.changeFrame(MazeScreen)
 			self.title("PathFinding | {}".format(filePath))
@@ -284,7 +288,6 @@ class Application(tk.Tk):
 		elif algorithm == "Kruskals Algorithm":
 			from generators.kruskals import Generator
 		else:
-			print("No item selected")
 			return
 
 		# Load in the size of the maze from settings
@@ -315,8 +318,11 @@ class Application(tk.Tk):
 
 		if algorithm == "Recursive Backtracker":
 			from solvers.recursivebacktracker import Solver
+		elif algorithm == "Dijkstra's Algorithm":
+			from solvers.dijkstras import Solver
+		elif algorithm == "A*":
+			from solvers.AStar import Solver
 		else:
-			print("No item selected")
 			return
 
 		autorun = settings.autoStepEnabled
@@ -366,12 +372,8 @@ class HomeScreen(tk.Frame):
 		self.settingsButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
 		self.helpImage = tk.PhotoImage(file = getResourcePath("assets/home/help.png"))
-		self.helpButton = tk.Button(self, image = self.helpImage, command = lambda: mb.showinfo("INFO", "Not Done Yet"), borderwidth = 0)
+		self.helpButton = tk.Button(self, image = self.helpImage, command = self.showHelp, borderwidth = 0)
 		self.helpButton.grid(row = 0, column = 0, sticky = "NW", pady = 5, padx = 5)
-
-		self.loginButton = tk.PhotoImage(file = getResourcePath("assets/home/login.png"))
-		self.userStatusButton = tk.Button(self, image = self.loginButton, command = lambda:mb.showerror("NOT DONE", "Not completed yet"), borderwidth = 0)
-		self.userStatusButton.grid(row = 0, column = 0, sticky = "N", pady = 5)
 
 		self.generateImage = tk.PhotoImage(file = getResourcePath("assets/home/generate.png"))
 		self.generateButton = tk.Button(self, image = self.generateImage, command = self.generateMaze, borderwidth = 0)
@@ -395,6 +397,9 @@ class HomeScreen(tk.Frame):
 		"""
 		self.parent.generateMaze()
 		self.parent.changeFrame(MazeScreen)
+
+	def showHelp(self):
+		self.helpMenu = HelpMenu()
 
 
 class MazeScreen(tk.Frame):
@@ -422,8 +427,8 @@ class MenuList(tk.Frame):
 		self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: self.parent.changeMenu(None), borderwidth = 0)
 		self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
-		self.GenerationSettingsIco = tk.PhotoImage(file = getResourcePath("assets/settings/generationTitle.png"))
-		tk.Button(self, image = self.GenerationSettingsIco, borderwidth = 0, command = lambda: self.parent.changeMenu(ColourSettings)).grid(row = 0, column = 0, pady = 70, padx = 40)
+		self.ColourSettingsIcon = tk.PhotoImage(file = getResourcePath("assets/settings/colourTitle.png"))
+		tk.Button(self, image = self.ColourSettingsIcon, borderwidth = 0, command = lambda: self.parent.changeMenu(ColourSettings)).grid(row = 0, column = 0, pady = 70, padx = 40)
 
 		self.SolverSettingsIcon = tk.PhotoImage(file = getResourcePath("assets/settings/solverTitle.png"))
 		tk.Button(self, image = self.SolverSettingsIcon, borderwidth = 0, command = lambda: self.parent.changeMenu(SolverSettings)).grid(row = 5, column = 0, pady = 70, padx = 40)
@@ -433,7 +438,7 @@ class MenuList(tk.Frame):
 
 
 class SettingsMenu(tk.Frame):
-	def __init__(self, parent, back = True):
+	def __init__(self, parent, back = None):
 		"""
 		Arguments:
 			parent -- The parent tkinter object for this screen
@@ -442,9 +447,10 @@ class SettingsMenu(tk.Frame):
 		self.parent = parent
 
 		self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settings/exit.png"))
-		if back:
+
+		if back is not None:
 			self.backImage = tk.PhotoImage(file = getResourcePath("assets/settings/back.png"))
-			self.backButton = tk.Button(self, image = self.backImage, command = lambda: parent.changeMenu(MenuList), borderwidth = 0)
+			self.backButton = tk.Button(self, image = self.backImage, command = lambda: parent.changeMenu(back), borderwidth = 0)
 			self.backButton.grid(row = 0, column = 0, sticky = "NW", pady = 5, padx = 5)
 
 		self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settings/exit.png"))
@@ -452,7 +458,7 @@ class SettingsMenu(tk.Frame):
 		self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
 	def exitMenu(self):
-		parent.changeMenu(None)
+		self.parent.changeMenu(None)
 
 
 	def loadTitle(self, source):
@@ -466,10 +472,10 @@ class SettingsMenu(tk.Frame):
 
 class ColourSettings(SettingsMenu):
 	def __init__(self, parent):
-		super().__init__(parent)
+		super().__init__(parent, MenuList)
 		self.parent = parent
 
-		self.loadTitle(getResourcePath("assets/settings/generationTitle.png"))
+		self.loadTitle(getResourcePath("assets/settings/colourTitle.png"))
 
 		self.loadWidgets()
 
@@ -507,9 +513,10 @@ class ColourSettings(SettingsMenu):
 
 
 	def setColour(self, key, newColour, index):
-		maze.tileColours[key][index] = newColour
+		if newColour is not None:
+			maze.tileColours[key][index] = newColour
 
-		self.parent.db.updateUserColours(self.parent.userID, key.name.upper(), index, newColour)
+			self.parent.db.updateUserColours(self.parent.userID, key.name.upper(), index, newColour)
 
 
 	def updateColours(self):
@@ -524,7 +531,7 @@ class GenerationSettings(SettingsMenu):
 		Arguments:
 			parent -- The parent tkinter object for this screen.
 		"""
-		super().__init__(parent)
+		super().__init__(parent, MenuList)
 		self.parent = parent
 
 		# Load a Title button with the given file
@@ -569,16 +576,18 @@ class SolverSettings(SettingsMenu):
 		Arguments:
 			parent -- The parent tkinter object for this screen.
 		"""
-		super().__init__(parent)
+		super().__init__(parent, MenuList)
 
 		self.loadTitle(getResourcePath("assets/settings/solverTitle.png"))
 
 		solvers = (
 				"Recursive Backtracker",
+				"Dijkstra's Algorithm",
+				"A*"
 				)
 
 		self.solverChoice = ttk.Combobox(self, values = solvers, state = "readonly", width = 20, font = ("arial", 14))
-		self.solverChoice.set(solvers[0])
+		self.solverChoice.set(solvers[2])
 		self.solverChoice.grid(row = 2, column = 0, pady = 20)
 
 		self.autoStepEnabled = True
@@ -596,7 +605,7 @@ class SolverSettings(SettingsMenu):
 
 		for speed in self.speeds:
 			image = tk.PhotoImage(file = getResourcePath("assets/speeds/X{}.png".format(speed)))
-			button = tk.Button(self.speedsFrame, image = image, command = lambda x=speed: self.parent.solver.setSpeed(x), borderwidth = 0)
+			button = tk.Button(self.speedsFrame, image = image, command = lambda x=speed: self.setSpeed(x), borderwidth = 0)
 			button.grid(row = 1, column = speed)
 
 			self.speedItems.update({speed: {"image": image, "button": button}})
@@ -630,7 +639,7 @@ class SolverSettings(SettingsMenu):
 
 class SolverMenu(SettingsMenu):
 	def __init__(self, parent):
-		super().__init__(parent, False)
+		super().__init__(parent)
 
 		self.loadTitle(getResourcePath("assets/settings/solverTitle.png"))
 
@@ -713,7 +722,7 @@ class SolverMenu(SettingsMenu):
 
 class EditMenu(SettingsMenu):
 	def __init__(self, parent):
-		super().__init__(parent, False)
+		super().__init__(parent)
 
 		self.loadTitle(getResourcePath("assets/settings/solverTitle.png"))
 

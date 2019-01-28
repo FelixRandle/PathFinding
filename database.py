@@ -1,8 +1,8 @@
 import sqlite3 as sql
 
 class Database:
-    def __init__(self, coloursInfo):
-        self.db =  sql.connect("userData.db")
+    def __init__(self, databasePath, coloursInfo):
+        self.db =  sql.connect(databasePath)
         self.db.row_factory = sql.Row
         self.cursor = self.db.cursor()
 
@@ -99,9 +99,11 @@ class Database:
             WHERE userID = ?
         """, (userID, ))
         userColours = self.cursor.fetchone()
+        # Loop through columns from database and keys from colours dictionary.
         for column in userColours.keys():
             for key in returnColours:
-                if column != "userID" and key.name == column:
+                if key.name == column:
+                    # Recreate string as an array after removing all []' characters.
                     coloursArr = ("".join( c for c in userColours[column] if c not in "[]' " ).split(","))
                     returnColours.update({key: coloursArr})
 
@@ -115,6 +117,7 @@ class Database:
                             """.format(fieldName), (userID, ))
 
         result = self.cursor.fetchone()
+        # Recreate string as an array after removing all []' characters.
         coloursArr = ("".join( c for c in result[0] if c not in "[]' " ).split(","))
         coloursArr[index] = newColour
 
