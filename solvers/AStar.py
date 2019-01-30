@@ -63,8 +63,6 @@ class Solver(SolverTemplate):
                     self.dist[neighbour] = alt
                     self.previous[neighbour] = tile
 
-
-
         self.steps += 1
         self.updateSteps()
 

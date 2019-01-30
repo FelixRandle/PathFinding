@@ -227,7 +227,7 @@ class Application(tk.Tk):
 		filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
 
 		# If the file path fits the form of '*.maz' then save it. Otherwise don't.
-		if !filePath.endswith(".maz"):
+		if not filePath.endswith(".maz"):
 			self.maze.toFile(filePath)
 		else:
 			self.maze.toFile(filePath+".maz")
@@ -283,10 +283,12 @@ class Application(tk.Tk):
 		# Get the algorithm choice and load that algorithms Generator.
 		algorithm = settings.algorithmChoice.get()
 
-		if algorithm == "Recursive Backtracker":
-			from generators.recursivebacktracker import Generator
+		if algorithm == "Flood Fill":
+			from generators.floodfill import Generator
 		elif algorithm == "Kruskals Algorithm":
 			from generators.kruskals import Generator
+		elif algorithm == "Subchamber Division":
+			from generators.subchamberdivision import Generator
 		else:
 			return
 
@@ -542,13 +544,13 @@ class GenerationSettings(SettingsMenu):
 
 		ttk.Label(self.container, text = "Generation Algorithm", style = "Header.TLabel").grid(row = 1, column = 0, pady = 20)
 
-		generators = (  "Recursive Backtracker",
-				"Prims Algorithm",
+		generators = (  "Flood Fill",
+				"Subchamber Division",
 				"Kruskals Algorithm"
 					)
 
 		self.algorithmChoice = ttk.Combobox(self.container, values = generators, state = "readonly", width = 20, font = ("arial", 14))
-		self.algorithmChoice.current(0)
+		self.algorithmChoice.current(2)
 		self.algorithmChoice.grid(row = 2, column = 0, pady = 20)
 
 		ttk.Label(self.container, text = "Maze Size", style = "Header.TLabel").grid(row = 3, column = 0, pady = 20)
