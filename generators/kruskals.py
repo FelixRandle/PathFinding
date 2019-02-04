@@ -47,7 +47,6 @@ class Generator:
 			newX, newY = x + direction[0], y + direction[1]
 			self.xySet = None
 			self.newxySet = None
-			print(self.sets.index(self.maze.tiles[x][y]))
 			for i in range(len(self.sets)):
 				if self.xySet != None and self.newxySet != None:
 					break

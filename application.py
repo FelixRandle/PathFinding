@@ -11,8 +11,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as mb
 from tkinter.filedialog import asksaveasfilename, askopenfilename
-# re (REGEX) used for checking filenames.
-import re
 # os used for handling directories.
 import os
 # sys used for getting resource paths for packed program.
@@ -129,10 +127,6 @@ class Application(tk.Tk):
 
 		# Set the default background for all widgets to a specific colour
 		self.style.configure(".", background = "#d9d9d9")
-
-
-		# Load in styles for any situation we need.
-		self.style.configure("Header.TLabel", font = ("Helvetica", 15, "italic"))
 
 		# Load in styles for any situation we need.
 		self.style.configure("Header.TLabel", font = ("Alegreya Sans SC Regular", 15, "bold italic"))
@@ -727,6 +721,43 @@ class EditMenu(SettingsMenu):
 		super().__init__(parent)
 
 		self.loadTitle(getResourcePath("assets/settings/solverTitle.png"))
+
+		ttk.Label(self, text = "Current Tile:", style = "Header.TLabel").grid(row = 1, column = 0)
+
+		self.currentTileLabel = ttk.Label(self, text = "None", style = "Subheading.TLabel")
+		self.currentTileLabel.grid(row = 2, column = 0, pady = 5)
+
+		self.currentTile = tk.Button(self, width = 2, height = 1, bg = "grey")
+		self.currentTile.grid(row = 3, column = 0, pady = 5)
+
+		ttk.Label(self, text = "Please click on a tile to select it", style = "Subheading.TLabel").grid(row = 5, column = 0)
+
+		availableTiles = ["WALL", "PATH", "START", "END"]
+
+		currentRow = 10
+
+		firstItem = True
+
+		for key, item in maze.tileColours.items():
+			if key.name  in availableTiles:
+				if firstItem:
+					self.changeTile(key, key.name.title(), item)
+
+					firstItem = False
+				ttk.Label(self, text = key.name.title(), style = "Subheading.TLabel").grid(row = currentRow, column = 0, pady = 5)
+				tk.Button(self, width = 2, height = 1, bg = item[1], highlightbackground = item[0], command = lambda key=key, name=key.name.title(), colours=item: self.changeTile(key, name, colours)).grid(row = currentRow + 1, column = 0, pady = 5)
+
+				currentRow += 5
+
+
+	def changeTile(self, key, tileName, colours):
+		self.currentTileLabel.config(text = tileName)
+		self.currentTile.config(bg = colours[1])
+
+		try:
+			self.parent.maze.currentEdit = key
+		except AttributeError:
+			pass
 
 	def exitMenu(self):
 		self.parent.frames[MazeScreen].editMode = False

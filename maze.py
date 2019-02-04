@@ -70,12 +70,10 @@ class Maze:
         Shift+Button-1 | Shift + Left Click -- Set Start.
         Shift+Button-2 | Shift + Right Click -- Set End.
         """
-        self.canvas.bind("<B1-Motion>", lambda event: self.setTile(event, tileTypes.PATH))
-        self.canvas.bind("<Button-1>", lambda event: self.setTile(event, tileTypes.PATH))
-        self.canvas.bind("<B3-Motion>", lambda event: self.setTile(event, tileTypes.WALL))
-        self.canvas.bind("<Button-3>", lambda event: self.setTile(event, tileTypes.WALL))
-        self.canvas.bind("<Shift-Button-1>", lambda event: self.setTile(event, tileTypes.START))
-        self.canvas.bind("<Shift-Button-3>", lambda event: self.setTile(event, tileTypes.END))
+        self.currentEdit = tileTypes.WALL
+        self.canvas.bind("<B1-Motion>", lambda event: self.setTile(event))
+        self.canvas.bind("<Button-1>", lambda event: self.setTile(event))
+
 
 
     def toFile(self, filePath = "saves/save.p"):
@@ -130,7 +128,7 @@ class Maze:
                         currentItem["tileType"]))
 
 
-    def setTile(self, event, tileType = tileTypes.WALL):
+    def setTile(self, event):
         """
         Internal method for handling mouse click events.
         This allows the user to 'draw' parts of the maze.
@@ -139,6 +137,7 @@ class Maze:
         x = event.x
         y = event.y
         if self.parent.editMode:
+            tileType = self.currentEdit
             # Translate the pixel X and Y into values that we can access the list with.
             listX = int(x / (self.canvasSize / self.size))
             listY = int(y / (self.canvasSize / self.size))
@@ -208,10 +207,6 @@ class Tile:
             int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)),
             fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
 
-        if self.tileType == tileTypes.START:
-            self.maze.start = self
-        elif self.tileType == tileTypes.END:
-            self.maze.end = self
 
     def findNeighbours(self, distance = 2, blockVisited = False, blockWalls = False):
         """
@@ -219,9 +214,9 @@ class Tile:
         Find those two away as all walls are placed on even coordinates
         """
         # List of relative neighbours based on given distances.
-        relativeNeighbours = [               [0, distance],
-                    [-distance, 0],           [distance, 0],
-                             [0, -distance]
+        relativeNeighbours = [                  [0, distance],
+                                [-distance, 0],               [distance, 0],
+                                                [0, -distance]
         ]
 
         #Loop through the positions of neighbours if they are on the Maze
@@ -262,22 +257,10 @@ class Tile:
         Arguments:
             newType -- The new tileType that it should be changed to. Defaults to PATH.
         """
-        tileBuffer = None
-        if self.tileType == tileTypes.START:
-            tileBuffer = self.maze.start
-            self.maze.start = None
-        elif self.tileType == tileTypes.END:
-            tileBuffer = self.maze.end
-            self.maze.end = None
-
         # Change the tileType of the tile.
         self.tileType = newType
         # Change the tile colours to reflect the newly desired tile.
         self.updateColour()
-
-        if tileBuffer != None:
-            print(tileBuffer)
-            tileBuffer.setWall()
 
     def setWall(self):
         """
@@ -320,6 +303,11 @@ class Tile:
         Set the current tile to a START tile.
         """
         # Change the mazes start point.
+        try:
+            self.maze.start.setWall()
+        except AttributeError:
+            pass
+
         self.changeType(newType = tileTypes.START)
         self.maze.start = self
 
@@ -328,5 +316,10 @@ class Tile:
         Set the current tile to an END tile.
         """
         # Change the mazes end point.
+        try:
+            self.maze.end.setWall()
+        except AttributeError:
+            pass
+
         self.changeType(newType = tileTypes.END)
         self.maze.end = self
