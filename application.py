@@ -31,6 +31,9 @@ TODO:
 """
 
 def getResourcePath(relativePath):
+	"""
+	Function used to get a resources path when using an executable file.
+	"""
 	if hasattr(sys, '_MEIPASS'):
 		return os.path.join(sys._MEIPASS, relativePath)
 	return os.path.join(os.path.abspath("."), relativePath)
@@ -109,6 +112,9 @@ class Application(tk.Tk):
 
 
 	def keyPress(self, event):
+		"""
+		Method for handling key presses on the main menu.
+		"""
 		if event.keycode == self.EESequence[self.EEPos]:
 			self.EEPos += 1
 		else:
@@ -120,6 +126,10 @@ class Application(tk.Tk):
 
 
 	def loadStyles(self):
+		"""
+		Method for loading the different styles needed for labels,
+		buttons as well as loading in a custom font.
+		"""
 		# Load in a custom font
 		loadFont("assets/fonts/AlegreyaSansSC-Regular.ttf")
 		# Load a style object
@@ -135,7 +145,7 @@ class Application(tk.Tk):
 
 		self.style.configure("Footer.TLabel", font = ("Alegreya Sans SC Regular", 12, "roman"))
 
-		self.style.configure("Settings.TButton", height = 2, width = 20, font = ("arial", 15))
+		self.style.configure("Settings.TButton", height = 2, width = 20, font = ("Alegreya Sans SC Regular", 15))
 
 
 	def loadTopMenu(self):
@@ -160,7 +170,6 @@ class Application(tk.Tk):
 		# If we are currently solving a maze, this brings up the Solver Menu, otherwise it solves the Maze.
 		self.menubar.add_command(label = "Solve Current Maze", command = lambda: self.changeMenu(SolverMenu) if self.maze.solving else self.solveMaze())
 
-
 		self.menubar.add_command(label = "Enter edit mode", command = self.editMode)
 
 		self.menubar.add_command(label = "Settings", command = lambda: self.changeMenu(MenuList))
@@ -176,6 +185,8 @@ class Application(tk.Tk):
 		for frame in self.grid_slaves():
 			if frame.grid_info()["column"] == 0:
 				frame.grid_forget()
+		# If we're going to the home screen, remove the menubar from the Top
+		# Otherwise, place our menubar there.
 		if newFrame == HomeScreen:
 			self.changeMenu(None)
 			emptyMenu = tk.Menu(self)
@@ -221,8 +232,10 @@ class Application(tk.Tk):
 		filePath = asksaveasfilename(initialdir = "./saves/", filetypes = [('MAZ Files', '.maz')], title = "Where to save file?")
 
 		# If the file path fits the form of '*.maz' then save it. Otherwise don't.
-		if not filePath.endswith(".maz"):
+		if filePath.endswith(".maz"):
 			self.maze.toFile(filePath)
+		elif filePath.strip(" ") == "":
+			return
 		else:
 			self.maze.toFile(filePath+".maz")
 			# mb.showerror(self.Title, "Please ensure the filePath fits the form of '*.maz'")
@@ -283,7 +296,10 @@ class Application(tk.Tk):
 			from generators.kruskals import Generator
 		elif algorithm == "Subchamber Division":
 			from generators.subchamberdivision import Generator
+		elif algorithm == "Blank Maze":
+			from generators.blankmaze import Generator
 		else:
+			mb.showerror("ERROR", "Error loading generator, please choose another generator")
 			return
 
 		# Load in the size of the maze from settings
@@ -293,6 +309,7 @@ class Application(tk.Tk):
 		self.loadMaze(size)
 		Generator(self.maze)
 
+		# Reset the programs title
 		self.title("PathFinding")
 
 
@@ -319,6 +336,7 @@ class Application(tk.Tk):
 		elif algorithm == "A*":
 			from solvers.AStar import Solver
 		else:
+			mb.showerror("ERROR", "Error loading solver, please choose another solver")
 			return
 
 		autorun = settings.autoStepEnabled
@@ -342,6 +360,9 @@ class Application(tk.Tk):
 
 
 class HomeScreen(tk.Frame):
+	"""
+	Class for the applications Home Screen
+	"""
 	def __init__(self, parent):
 		super().__init__()
 		"""
@@ -395,10 +416,16 @@ class HomeScreen(tk.Frame):
 		self.parent.changeFrame(MazeScreen)
 
 	def showHelp(self):
+		"""
+		Method for showing the help menu.
+		"""
 		self.helpMenu = HelpMenu()
 
 
 class MazeScreen(tk.Frame):
+	"""
+	Class for the applications Maze Screen
+	"""
 	def __init__(self, parent):
 		"""
 		Arguments:
@@ -411,7 +438,14 @@ class MazeScreen(tk.Frame):
 
 
 class MenuList(tk.Frame):
+	"""
+	Class for the applications Menu list
+	"""
 	def __init__(self, parent):
+		"""
+		Arguments:
+			parent -- The parent tkinter object for this screen.
+		"""
 		super().__init__()
 		self.parent = parent
 
@@ -419,6 +453,9 @@ class MenuList(tk.Frame):
 
 
 	def loadWidgets(self):
+		"""
+		Method for creating all the pages widgets
+		"""
 		self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settings/exit.png"))
 		self.exitButton = tk.Button(self, image = self.exitImage, command = lambda: self.parent.changeMenu(None), borderwidth = 0)
 		self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
@@ -438,22 +475,27 @@ class SettingsMenu(tk.Frame):
 		"""
 		Arguments:
 			parent -- The parent tkinter object for this screen
+			back -- None if there is no menu to go back to. Otherwise
+			the menu that the back button should lead to.
 		"""
 		super().__init__()
 		self.parent = parent
 
-		self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settings/exit.png"))
-
+		# If we need a back button, load the icon and create the button.
 		if back is not None:
 			self.backImage = tk.PhotoImage(file = getResourcePath("assets/settings/back.png"))
 			self.backButton = tk.Button(self, image = self.backImage, command = lambda: parent.changeMenu(back), borderwidth = 0)
 			self.backButton.grid(row = 0, column = 0, sticky = "NW", pady = 5, padx = 5)
 
+		# Create the exit button after loading the icon.
 		self.exitImage = tk.PhotoImage(file = getResourcePath("assets/settings/exit.png"))
 		self.exitButton = tk.Button(self, image = self.exitImage, command = self.exitMenu, borderwidth = 0)
 		self.exitButton.grid(row = 0, column = 0, sticky = "NE", pady = 5, padx = 5)
 
 	def exitMenu(self):
+		"""
+		Method for exiting the current menu.
+		"""
 		self.parent.changeMenu(None)
 
 
@@ -467,7 +509,14 @@ class SettingsMenu(tk.Frame):
 
 
 class ColourSettings(SettingsMenu):
+	"""
+	Class for the applications Colour Menu
+	"""
 	def __init__(self, parent):
+		"""
+		Arguments:
+			parent -- The parent tkinter object for this screen.
+		"""
 		super().__init__(parent, MenuList)
 		self.parent = parent
 
@@ -477,16 +526,22 @@ class ColourSettings(SettingsMenu):
 
 
 	def loadWidgets(self):
-		self.frames = {}
+		"""
+		Method used to create menu's widgets
+		"""
+		# Loop through all the keys and items in our current tileColours
 		for key, item in maze.tileColours.items():
+			# Remove all underscores from the keys string version
 			tileName = key.name.replace("_", " ").title()
 
+			# Create a container to place our items in
 			container = tk.Frame(self, width = 200)
-			container.grid(row = key.value + 1, column = 0, pady = 5)
+			container.grid(row = key.value + 1, column = 0, pady = 0)
 
 			title = ttk.Label(container, style = "Header.TLabel", text = tileName)
 			title.grid(row = 0, column = 0, columnspan = 19)
 
+			# Create widgets for picking both the foreground and background of each of the tiles.
 			fgTitle = ttk.Label(container, style = "Subheading.TLabel", text = "FG :")
 			fgTitle.grid(row = 1, column = 0)
 
@@ -504,11 +559,15 @@ class ColourSettings(SettingsMenu):
 			bgColour.grid(row = 1, column = 5)
 			bgColour.set(maze.tileColours[key][0])
 
-		self.reloadButton = tk.Button(self, text = "Reload Colours", command = self.updateColours)
-		self.reloadButton.grid(row = 100, column = 0)
+		# Add a reload button to use the users changes without reloading the entire maze.
+		self.reloadButton = ttk.Button(self, style = "Settings.TButton", text = "Reload Colours", command = self.updateColours)
+		self.reloadButton.grid(row = 100, column = 0, pady = 3)
 
 
 	def setColour(self, key, newColour, index):
+		"""
+		Method to change the colour stored in both the database and the tileColours dictionary
+		"""
 		if newColour is not None:
 			maze.tileColours[key][index] = newColour
 
@@ -516,6 +575,9 @@ class ColourSettings(SettingsMenu):
 
 
 	def updateColours(self):
+		"""
+		Method to update the colours across the entire maze
+		"""
 		for row in self.parent.maze.tiles:
 			for tile in row:
 				tile.updateColour()
@@ -540,7 +602,8 @@ class GenerationSettings(SettingsMenu):
 
 		generators = (  "Flood Fill",
 				"Subchamber Division",
-				"Kruskals Algorithm"
+				"Kruskals Algorithm",
+				"Blank Maze"
 					)
 
 		self.algorithmChoice = ttk.Combobox(self.container, values = generators, state = "readonly", width = 20, font = ("arial", 14))
@@ -549,7 +612,7 @@ class GenerationSettings(SettingsMenu):
 
 		ttk.Label(self.container, text = "Maze Size", style = "Header.TLabel").grid(row = 3, column = 0, pady = 20)
 
-		self.mazeSize = ttk.Scale(self.container, from_ = 21, to = 201, orient = tk.HORIZONTAL, value = 51, command = self.oddOnly, length = 200)
+		self.mazeSize = ttk.Scale(self.container, from_ = 21, to = 75, orient = tk.HORIZONTAL, value = 37, command = self.oddOnly, length = 200)
 		self.mazeSize.grid(row = 4, column = 0, pady = 20)
 
 		self.mazeSizeLabel = ttk.Label(self.container, text = 51, style = "Header.TLabel")
@@ -689,8 +752,9 @@ class SolverMenu(SettingsMenu):
 
 
 	def startAutoStep(self):
-		self.parent.solver.autorun = True
-		self.parent.solver.step()
+		if self.parent.solver.solved == False:
+			self.parent.solver.autorun = True
+			self.parent.solver.step()
 
 
 	def stopAutoStep(self):
@@ -748,7 +812,6 @@ class EditMenu(SettingsMenu):
 				tk.Button(self, width = 2, height = 1, bg = item[1], highlightbackground = item[0], command = lambda key=key, name=key.name.title(), colours=item: self.changeTile(key, name, colours)).grid(row = currentRow + 1, column = 0, pady = 5)
 
 				currentRow += 5
-
 
 	def changeTile(self, key, tileName, colours):
 		self.currentTileLabel.config(text = tileName)

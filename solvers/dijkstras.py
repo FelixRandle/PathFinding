@@ -37,14 +37,15 @@ class Solver(SolverTemplate):
             try:
                 self.tiles.remove(tile)
             except ValueError:
-                    mb.showerror("ERROR", "Cannot solve maze")
-                    self.maze.solving = False
-                    return
+                mb.showerror("ERROR", "Cannot solve maze")
+                self.maze.solving = False
+                return
 
             tileNeighbours = tile.neighbours
 
             if self.end in tileNeighbours:
                 self.maze.solving = False
+                self.solved = True
 
                 target = tile
                 if self.previous[target] is not None:
@@ -56,14 +57,16 @@ class Solver(SolverTemplate):
                 return
 
             for neighbour in tileNeighbours:
+                if neighbour.visitCount > 0:
+                    continue
 
                 alt = self.dist[tile] + self.distance(tile, neighbour)
+
+                neighbour.write(int(alt))
                 if alt < self.dist[neighbour]:
                     neighbour.setVisited()
                     self.dist[neighbour] = alt
                     self.previous[neighbour] = tile
-
-
 
         self.steps += 1
         self.updateSteps()
@@ -75,7 +78,7 @@ class Solver(SolverTemplate):
         returnTile = None
         dist = float("inf")
         for tile in self.tiles:
-            tileDist = self.dist[tile]
+            tileDist = self.cost[tile]
 
             if tileDist < dist:
                 dist = tileDist

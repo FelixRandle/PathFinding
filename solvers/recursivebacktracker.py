@@ -26,6 +26,7 @@ class Solver(SolverTemplate):
                 if self.end in tileNeighbours:
                         self.stack.push(self.currentTile)
                         self.maze.solving = False
+                        self.solved = True
                         # Loop through the remaining stack and change all tiles to the FOUNDPATH type.
                         while not self.stack.isEmpty():
                                 tile = self.stack.pop()

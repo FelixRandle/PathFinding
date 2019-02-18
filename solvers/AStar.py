@@ -11,25 +11,28 @@ class Solver(SolverTemplate):
         # Push the tile to the stack.
         self.stack.push(self.start)
 
+        self.cost = {}
         self.dist = {}
         self.previous = {}
         self.tiles = []
 
         for tileX in self.maze.tiles:
             for tile in tileX:
+                self.cost.update({tile: float("inf")})
                 self.dist.update({tile: float("inf")})
                 self.previous.update({tile: None})
                 tile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
                 self.tiles.append(tile)
 
         self.dist[self.start] = 0
+        self.cost[self.start] = 0
 
         # If we are autorunning, call the step function.
         if self.autorun:
                 self.maze.parent.after(100, self.step)
 
     def step(self, force = False):
-        if not self.autorun and not force:
+        if (not self.autorun and not force):
             return
         if len(self.tiles) > 0:
             tile = self.smallestDistance()
@@ -45,6 +48,7 @@ class Solver(SolverTemplate):
 
             if self.end in tileNeighbours:
                 self.maze.solving = False
+                self.solved = True
 
                 target = tile
                 if self.previous[target] is not None:
@@ -56,12 +60,16 @@ class Solver(SolverTemplate):
                 return
 
             for neighbour in tileNeighbours:
+                if neighbour.visitCount > 0:
+                    continue
 
-                alt = self.dist[tile] + self.distance(tile, neighbour) + self.distance(tile, self.end)
-                if alt < self.dist[neighbour]:
+                alt = self.dist[tile] + self.distance(tile, neighbour) + (self.distance(tile, self.end) * 2)
+                neighbour.write(int(alt))
+                if alt < self.cost[neighbour]:
                     neighbour.setVisited()
-                    self.dist[neighbour] = alt
+                    self.dist[neighbour] = self.dist[tile] + self.distance(tile, neighbour)
                     self.previous[neighbour] = tile
+                    self.cost[neighbour] = alt
 
         self.steps += 1
         self.updateSteps()
@@ -73,7 +81,7 @@ class Solver(SolverTemplate):
         returnTile = None
         dist = float("inf")
         for tile in self.tiles:
-            tileDist = self.dist[tile]
+            tileDist = self.cost[tile]
 
             if tileDist < dist:
                 dist = tileDist
@@ -82,4 +90,4 @@ class Solver(SolverTemplate):
         return returnTile
 
     def distance(self, tile1, tile2):
-        return math.sqrt(((tile1.x - tile2.x) ** 2) + ((tile1.y - tile2.y) ** 2))
+        return (math.fabs(tile1.x - tile2.x) + math.fabs(tile1.y - tile2.y))

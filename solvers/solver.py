@@ -5,7 +5,9 @@ class SolverTemplate:
 	def __init__(self, parent, maze, settings, advancedInformation):
 		self.parent = parent
 		self.maze = maze
-		
+
+		self.solved = False
+
 		for tileX in self.maze.tiles:
 			for tile in tileX:
 				tile.visitCount = 0

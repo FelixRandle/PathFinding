@@ -27,6 +27,8 @@ tileColours = { tileTypes.WALL: ["black", "black"],
         tileTypes.FOUND_PATH: ["cyan", "magenta"]
         }
 
+backupColours = tileColours
+
 class Maze:
     """Class used to hold maze information."""
     def __init__(self, parent, size = 15, canvasSize = 600):
@@ -127,6 +129,12 @@ class Maze:
                         currentItem["size"],
                         currentItem["tileType"]))
 
+                if currentItem["tileType"].name == "START":
+                    self.start = self.tiles[rowNo][itemNo]
+
+                elif currentItem["tileType"].name == "END":
+                    self.end = self.tiles[rowNo][itemNo]
+
 
     def setTile(self, event):
         """
@@ -165,6 +173,7 @@ class Maze:
             for tile in tileX:
                 if tile.tileType in (tileTypes.PATH_VISITED_ONCE, tileTypes.PATH_VISITED_TWICE, tileTypes.FOUND_PATH):
                     tile.setPath()
+                tile.write("")
 
 
 class Tile:
@@ -323,3 +332,14 @@ class Tile:
 
         self.changeType(newType = tileTypes.END)
         self.maze.end = self
+
+    def write(self, content):
+        """
+        Writes text inside the tile
+        """
+        try:
+            self.parent.delete(self.label)
+        except:
+            pass
+        finally:
+            self.label = self.parent.create_text(self.xPos + (self.size / 2), self.yPos + (self.size / 2), text = content, width = self.size)
