@@ -1,6 +1,9 @@
-   # TAKEN FROM https://stackoverflow.com/questions/38543709/count-lines-of-code-in-directory-using-python
+"""Program to count the lines of a project"""
+# TAKEN FROM https://stackoverflow.com/questions/38543709/
+# count-lines-of-code-in-directory-using-python
 # Purely for informative purposes.
 import os
+
 
 def countlines(start, lines=0, header=True, begin_start=None):
     if header:
@@ -25,5 +28,6 @@ def countlines(start, lines=0, header=True, begin_start=None):
             lines = countlines(thing, lines, header=False, begin_start=start)
 
     return lines
+
 
 countlines(".")

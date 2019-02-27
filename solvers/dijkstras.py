@@ -1,6 +1,7 @@
-from solvers.solver import SolverTemplate, Stack
+from solvers.solver import SolverTemplate
 import tkinter.messagebox as mb
 import math
+
 
 class Solver(SolverTemplate):
     def __init__(self, *args, **kwargs):
@@ -19,16 +20,17 @@ class Solver(SolverTemplate):
             for tile in tileX:
                 self.dist.update({tile: float("inf")})
                 self.previous.update({tile: None})
-                tile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
+                tile.findNeighbours(distance=1, blockVisited=True,
+                                    blockWalls=True)
                 self.tiles.append(tile)
 
         self.dist[self.start] = 0
 
         # If we are autorunning, call the step function.
         if self.autorun:
-                self.maze.parent.after(100, self.step)
+            self.maze.parent.after(100, self.step)
 
-    def step(self, force = False):
+    def step(self, force=False):
         if not self.autorun and not force:
             return
         if len(self.tiles) > 0:
@@ -78,7 +80,7 @@ class Solver(SolverTemplate):
         returnTile = None
         dist = float("inf")
         for tile in self.tiles:
-            tileDist = self.cost[tile]
+            tileDist = self.dist[tile]
 
             if tileDist < dist:
                 dist = tileDist
@@ -87,4 +89,4 @@ class Solver(SolverTemplate):
         return returnTile
 
     def distance(self, tile1, tile2):
-        return math.sqrt(((tile1.x - tile2.x) ** 2) + ((tile1.y - tile2.y) ** 2))
+        return (math.fabs(tile1.x - tile2.x) + math.fabs(tile1.y - tile2.y))

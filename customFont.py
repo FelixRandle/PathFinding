@@ -1,12 +1,14 @@
 from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
-FR_PRIVATE  = 0x10
+
+FR_PRIVATE = 0x10
 FR_NOT_ENUM = 0x20
+
 
 def loadFont(fontpath, private=True, enumerable=False):
     '''
     Makes fonts located in file `fontpath` available to the font system.
 
-    `private`     if True, other processes cannot see this font, and this 
+    `private`     if True, other processes cannot see this font, and this
                   font will be unloaded when the process dies
     `enumerable`  if True, this font will appear when enumerating fonts
 
@@ -24,7 +26,8 @@ def loadFont(fontpath, private=True, enumerable=False):
     else:
         raise TypeError('fontpath must be of type str or unicode')
 
-    flags = (FR_PRIVATE if private else 0) | (FR_NOT_ENUM if not enumerable else 0)
+    flags = (FR_PRIVATE if private else 0) | \
+            (FR_NOT_ENUM if not enumerable else 0)
     numFontsAdded = AddFontResourceEx(byref(pathbuf), flags, 0)
     return bool(numFontsAdded)
 
@@ -37,8 +40,9 @@ if __name__ == '__main__':
 
     loadFont("assets/AlegreyaSansSC-Regular.ttf")
 
-    newFont = font.Font(family = "Alegreya Sans SC Regular", size = 36, weight = "bold")
+    newFont = font.Font(family="Alegreya Sans SC Regular",
+                        size=36, weight="bold")
 
-    tk.Label(main, text = "Hello", font = newFont).pack()
+    tk.Label(main, text="Hello", font=newFont).pack()
 
     main.mainloop()

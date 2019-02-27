@@ -1,8 +1,9 @@
 import sqlite3 as sql
 
+
 class Database:
     def __init__(self, databasePath, coloursInfo):
-        self.db =  sql.connect(databasePath)
+        self.db = sql.connect(databasePath)
         self.db.row_factory = sql.Row
         self.cursor = self.db.cursor()
 
@@ -13,7 +14,6 @@ class Database:
         self.updateColours(coloursInfo)
 
         self.user = 0
-
 
     def createTables(self):
         self.cursor.execute("""
@@ -32,12 +32,14 @@ class Database:
 
     def updateColours(self, coloursInfo):
         for key, item in coloursInfo.items():
-                tileName = key.name.upper()
-                try:
-                    self.cursor.execute("ALTER TABLE COLOURS ADD {} VARCHAR DEFAULT {}".format(tileName, coloursInfo[key]))
-                    self.db.commit()
-                except sql.OperationalError:
-                    pass
+            tileName = key.name.upper()
+            try:
+                self.cursor.execute(
+                    "ALTER TABLE COLOURS ADD {} VARCHAR DEFAULT {}".format(
+                        tileName, coloursInfo[key]))
+                self.db.commit()
+            except sql.OperationalError:
+                pass
 
     def getUserID(self, username):
         self.cursor.execute("""
@@ -47,9 +49,8 @@ class Database:
         """, (username,))
 
         result = self.cursor.fetchone()
-        if result != None:
+        if result is not None:
             return result[0]
-
 
     def addUser(self, username):
         try:
@@ -82,12 +83,12 @@ class Database:
 
     def loginUser(self, username):
         UID = self.getUserID(username)
-        if UID == None:
+        if UID is None:
             UID = self.addUser(username)
         colours = self.getUserColours(UID)
         return UID, colours
 
-    def getUserColours(self, userID = 0):
+    def getUserColours(self, userID=0):
         returnColours = self.coloursInfo
 
         if userID == 0:
@@ -103,8 +104,9 @@ class Database:
         for column in userColours.keys():
             for key in returnColours:
                 if key.name == column:
-                    # Recreate string as an array after removing all []' characters.
-                    coloursArr = ("".join( c for c in userColours[column] if c not in "[]' " ).split(","))
+                    # Recreate string array
+                    coloursArr = ("".join(c for c in userColours[column] if c
+                                          not in "[]' ").split(","))
                     returnColours.update({key: coloursArr})
 
         return returnColours
@@ -118,15 +120,16 @@ class Database:
 
         result = self.cursor.fetchone()
         # Recreate string as an array after removing all []' characters.
-        coloursArr = ("".join( c for c in result[0] if c not in "[]' " ).split(","))
+        coloursArr = ("".join(c for c in result[0] if c
+                              not in "[]' ").split(","))
         coloursArr[index] = newColour
 
         self.cursor.execute("""
                             UPDATE COLOURS
                             SET {} = ?
                             WHERE userID = ?
-                            """.format(fieldName), (str(coloursArr)[1:-1], userID,))
-
+                            """.format(fieldName), (str(coloursArr)[1:-1],
+                                                    userID,))
 
         self.db.commit()
 
@@ -152,14 +155,16 @@ if __name__ == '__main__':
         START = 10
         END = 11
 
-    # Dictionary of colours to use for different tiles, background then foreground
-    tileColours = { tileTypes.WALL: ["black", "black"],
-            tileTypes.PATH: ["light grey", "white"],
-            tileTypes.START: ["green", "light green"],
-            tileTypes.END: ["pink", "red"],
-            tileTypes.PATH_VISITED_ONCE: ["light grey", "#2376fc"],
-            tileTypes.PATH_VISITED_TWICE: ["light grey", "#0048bc"],
-            tileTypes.FOUND_PATH: ["cyan", "magenta"]
+    # Dictionary of colours to use for different tiles, background
+    # then foreground
+    tileColours = {
+        tileTypes.WALL: ["black", "black"],
+        tileTypes.PATH: ["light grey", "white"],
+        tileTypes.START: ["green", "light green"],
+        tileTypes.END: ["pink", "red"],
+        tileTypes.PATH_VISITED_ONCE: ["light grey", "#2376fc"],
+        tileTypes.PATH_VISITED_TWICE: ["light grey", "#0048bc"],
+        tileTypes.FOUND_PATH: ["cyan", "magenta"]
             }
 
     db = Database(tileColours)

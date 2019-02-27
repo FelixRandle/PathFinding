@@ -1,11 +1,11 @@
 # External Imports
-# Tkinter and ttk libraries used for GUI aspects of the program.
+# Tkinter library used for GUI aspects of the program.
 import tkinter as tk
-import tkinter.ttk as ttk
 # Enum library used for different tileTypes.
 from enum import IntEnum
 # Pickle library used for serializing and deserializing maze objects.
 import pickle
+
 
 # Enum for the different tiles we can have in the maze.
 class tileTypes(IntEnum):
@@ -17,8 +17,10 @@ class tileTypes(IntEnum):
     START = 10
     END = 11
 
+
 # Dictionary of colours to use for different tiles, background then foreground
-tileColours = { tileTypes.WALL: ["black", "black"],
+tileColours = {
+        tileTypes.WALL: ["black", "black"],
         tileTypes.PATH: ["light grey", "white"],
         tileTypes.START: ["green", "light green"],
         tileTypes.END: ["pink", "red"],
@@ -29,14 +31,16 @@ tileColours = { tileTypes.WALL: ["black", "black"],
 
 backupColours = tileColours
 
+
 class Maze:
     """Class used to hold maze information."""
-    def __init__(self, parent, size = 15, canvasSize = 600):
+    def __init__(self, parent, size=15, canvasSize=600):
         """
         Arguments:
             parent -- The parent from tkinter, either Frame or Tk object.
             size -- The width and height of the maze. (Default 5)
-            canvasSize -- The size in pixels of the canvas to use to display the maze. (Default 600)
+            canvasSize -- The size in pixels of the canvas to use to display
+            the maze. (Default 600)
         """
         self.parent = parent
         self.size = size
@@ -51,15 +55,21 @@ class Maze:
         """
         self.start = None
         self.end = None
-        self.canvas = tk.Canvas(self.parent, width = canvasSize, height = canvasSize, borderwidth = 0, highlightthickness = 0)
+        self.canvas = tk.Canvas(self.parent, width=canvasSize,
+                                height=canvasSize, borderwidth=0,
+                                highlightthickness=0)
 
-        # Create a 2 Dimensional array of tiles using our given parameters. Default all to WALL.
-        self.tiles = [[Tile(self.canvas, self, x, y, self.canvasSize / self.size, tileTypes.WALL) for y in range(0, size)] for x in range(0, size)]
+        # Create a 2 Dimensional array of tiles using our given parameters.
+        # Default all to WALL.
+        self.tiles = [[Tile(self.canvas, self, x, y,
+                            self.canvasSize / self.size, tileTypes.WALL)
+                       for y in range(0, size)] for x in range(0, size)]
         # Loop through 0 to 1 below the mazes size for an x coordinate.
         for x in range(0, self.size):
             # Loop through 0 to 1 below the mazes size for a y coordinate.
             for y in range(0, self.size):
-                # Find the neighbouring tiles. This must be done after all tiles are
+                # Find the neighbouring tiles.
+                # This must be done after all tiles are
                 # created otherwise the neighbour may not have been made.
                 self.tiles[x][y].findNeighbours()
 
@@ -76,9 +86,7 @@ class Maze:
         self.canvas.bind("<B1-Motion>", lambda event: self.setTile(event))
         self.canvas.bind("<Button-1>", lambda event: self.setTile(event))
 
-
-
-    def toFile(self, filePath = "saves/save.p"):
+    def toFile(self, filePath="saves/save.p"):
         """
         Method for saving the current maze to a file.
         Arguments:
@@ -100,7 +108,6 @@ class Maze:
         # Dump the serialized data to the given filepath.
         pickle.dump(data, open(filePath, "wb"))
 
-
     def fromFile(self, filePath):
         """
         Method for loading a maze from a file.
@@ -113,7 +120,7 @@ class Maze:
         self.size = mazeObj["size"]
         # Clear current tiles
         self.tiles = []
-        # Delete all current objects drawn so we don't start to lag when loading multiple mazes.
+        # Delete all current objects drawn to avoid lag.
         self.canvas.delete("all")
         # Loop through each list of tiles
         for rowNo, row in mazeObj["tiles"].items():
@@ -125,16 +132,15 @@ class Maze:
                 currentItem = mazeObj["tiles"][rowNo][itemNo]
                 # Add a tile with the saved parameters to the list.
                 self.tiles[rowNo].append(Tile(self.canvas, self,
-                        currentItem["x"], currentItem["y"],
-                        currentItem["size"],
-                        currentItem["tileType"]))
+                                         currentItem["x"], currentItem["y"],
+                                         currentItem["size"],
+                                         currentItem["tileType"]))
 
                 if currentItem["tileType"].name == "START":
                     self.start = self.tiles[rowNo][itemNo]
 
                 elif currentItem["tileType"].name == "END":
                     self.end = self.tiles[rowNo][itemNo]
-
 
     def setTile(self, event):
         """
@@ -146,17 +152,19 @@ class Maze:
         y = event.y
         if self.parent.editMode:
             tileType = self.currentEdit
-            # Translate the pixel X and Y into values that we can access the list with.
+            # Translate the pixel X and Y so we can access the list.
             listX = int(x / (self.canvasSize / self.size))
             listY = int(y / (self.canvasSize / self.size))
             # If the translated coordinates are within the list size.
-            if listX >= 0 and listX < self.size and listY >= 0 and listY < self.size:
+            if (listX >= 0 and listX < self.size and
+               listY >= 0 and listY < self.size):
                 # Set the tile to the given tileType
                 if tileType == tileTypes.PATH:
                     self.tiles[listX][listY].setPath()
                 elif tileType == tileTypes.WALL:
                     self.tiles[listX][listY].setWall()
-                # For START and END we must also update the mazes saved start and end point.
+                # For START and END we must also update the mazes saved
+                # start and end point.
                 elif tileType == tileTypes.START:
                     self.tiles[listX][listY].setStart()
                     self.start = self.tiles[listX][listY]
@@ -164,21 +172,23 @@ class Maze:
                     self.tiles[listX][listY].setEnd()
                     self.end = self.tiles[listX][listY]
 
-
     def unvisitTiles(self):
         """
-        Method used to turn all tiles currently marked as visited back to normal paths.
+        Method used to turn all tiles currently marked as
+        visited back to normal paths.
         """
         for tileX in self.tiles:
             for tile in tileX:
-                if tile.tileType in (tileTypes.PATH_VISITED_ONCE, tileTypes.PATH_VISITED_TWICE, tileTypes.FOUND_PATH):
+                if tile.tileType in (tileTypes.PATH_VISITED_ONCE,
+                                     tileTypes.PATH_VISITED_TWICE,
+                                     tileTypes.FOUND_PATH):
                     tile.setPath()
                 tile.write("")
 
 
 class Tile:
     """Class used for the tiles of a maze."""
-    def __init__(self, parent, maze, xPos, yPos, size, tileType, border = 0.1):
+    def __init__(self, parent, maze, xPos, yPos, size, tileType, border=0.1):
         """
         Arguments:
             parent -- the parent canvas that the tile will use.
@@ -186,7 +196,8 @@ class Tile:
             yPos -- The y grid coordinate of the tile.
             size -- The width and height that the tile should be.
             tileType -- Used to define what the tile should appear as.
-            border -- Used to define the percentage of the size that the border should be. (Default 0.1)
+            border -- Used to define the percentage of the size that the border
+            should be. (Default 0.1)
         """
         self.parent = parent
         self.maze = maze
@@ -202,48 +213,65 @@ class Tile:
         """
         Additional Variables:
             visitCount -- how many times this tile has been visited.
-            neighbours --  A list of all neighbours of this tile and information about them.
+            neighbours --  A list of all neighbours of this tile and
+            information about them.
             backgroundColour -- The background colour of the tile.
-            colour -- The foreground colour of the tile. At smaller tile sizes this is the sole colour.
-            canvasRect -- The canvas rectangle used to display the Tile on the gui.
+            colour -- The foreground colour of the tile. At smaller tile sizes
+            this is the sole colour.
+            canvasRect -- The canvas rectangle used to display the Tile
+            on the gui.
         """
         self.visitCount = 0
         self.neighbours = []
         self.backgroundColour = tileColours[tileType][0]
         self.colour = tileColours[tileType][1]
         # Create the canvas rectangle using given parameters
-        self.canvasRect = parent.create_rectangle(int(self.xPos + (self.borderSize / 2)), int(self.yPos + (self.borderSize / 2)),
-            int(self.xPos + (self.size - self.borderSize / 2)), int(self.yPos + (self.size - self.borderSize / 2)),
-            fill = self.colour, outline = self.backgroundColour, width = self.borderSize)
+        self.canvasRect = parent.create_rectangle(
+            int(self.xPos + (self.borderSize / 2)),
+            int(self.yPos + (self.borderSize / 2)),
+            int(self.xPos + (self.size - self.borderSize / 2)),
+            int(self.yPos + (self.size - self.borderSize / 2)),
+            fill=self.colour, outline=self.backgroundColour,
+            width=self.borderSize)
 
-
-    def findNeighbours(self, distance = 2, blockVisited = False, blockWalls = False):
+    def findNeighbours(self, distance=2, blockVisited=False, blockWalls=False):
         """
         Method for finding the current tiles neighbours.
         Find those two away as all walls are placed on even coordinates
         """
         # List of relative neighbours based on given distances.
-        relativeNeighbours = [                  [0, distance],
-                                [-distance, 0],               [distance, 0],
-                                                [0, -distance]
+        relativeNeighbours = [
+            [0, distance],
+            [-distance, 0],
+            [distance, 0],
+            [0, -distance]
         ]
 
-        #Loop through the positions of neighbours if they are on the Maze
+        # Loop through the positions of neighbours if they are on the Maze
         self.neighbours = []
         for coords in relativeNeighbours:
+
             # If inside the maze
-            if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and (self.x + coords[0] < self.maze.size) and (self.y + coords[1] < self.maze.size):
+            if (self.x + coords[0] >= 0) and (self.y + coords[1] >= 0) and \
+               (self.x + coords[0] < self.maze.size) and \
+               (self.y + coords[1] < self.maze.size):
                 # If not visited
-                if (blockVisited and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].visitCount < 1) or (not blockVisited):
+                neighbour = self.maze.tiles[self.x +
+                                            coords[0]][self.y + coords[1]]
+                if (blockVisited and neighbour.visitCount < 1) or \
+                   (not blockVisited):
                     # If not a wall
-                    if (blockWalls and self.maze.tiles[self.x + coords[0]][self.y + coords[1]].tileType != tileTypes.WALL) or (not blockWalls):
-                        self.neighbours.append(self.maze.tiles[self.x + coords[0]][self.y + coords[1]])
+                    if (blockWalls and
+                       neighbour.tileType != tileTypes.WALL) or \
+                       (not blockWalls):
+                        self.neighbours.append(neighbour)
 
         return self.neighbours
 
     def toString(self):
         """
-        Method for translating our Tile object to a string so that it can be stored in a file.
+        Method for translating our Tile object to a string so that it can be
+        stored in a file.
         """
         data = {
             "x": self.x,
@@ -257,14 +285,16 @@ class Tile:
         fill = tileColours[self.tileType][1]
         outline = tileColours[self.tileType][0]
 
-        self.parent.itemconfig(self.canvasRect, fill = fill)
-        self.parent.itemconfig(self.canvasRect, outline = outline)
+        self.parent.itemconfig(self.canvasRect, fill=fill)
+        self.parent.itemconfig(self.canvasRect, outline=outline)
 
-    def changeType(self, newType = tileTypes.PATH):
+    def changeType(self, newType=tileTypes.PATH):
         """
-        Internal method for changing the tile type. This should not be used by generators or solvers.
+        Internal method for changing the tile type. This should not be used by
+        generators or solvers.
         Arguments:
-            newType -- The new tileType that it should be changed to. Defaults to PATH.
+            newType -- The new tileType that it should be changed to.
+            Defaults to PATH.
         """
         # Change the tileType of the tile.
         self.tileType = newType
@@ -275,13 +305,13 @@ class Tile:
         """
         Set the current tile to a WALL tile.
         """
-        self.changeType(newType = tileTypes.WALL)
+        self.changeType(newType=tileTypes.WALL)
 
     def setPath(self):
         """
         Set the current tile to a PATH tile
         """
-        self.changeType(newType = tileTypes.PATH)
+        self.changeType(newType=tileTypes.PATH)
 
     def setVisited(self):
         """
@@ -296,7 +326,7 @@ class Tile:
         else:
             return
 
-        self.changeType(newType = tileType)
+        self.changeType(newType=tileType)
 
         self.visitCount += 1
 
@@ -305,7 +335,7 @@ class Tile:
         Set the current tile to a FOUND_PATH tile.
         """
         if self.tileType not in (tileTypes.START, tileTypes.END):
-            self.changeType(newType = tileTypes.FOUND_PATH)
+            self.changeType(newType=tileTypes.FOUND_PATH)
 
     def setStart(self):
         """
@@ -317,7 +347,7 @@ class Tile:
         except AttributeError:
             pass
 
-        self.changeType(newType = tileTypes.START)
+        self.changeType(newType=tileTypes.START)
         self.maze.start = self
 
     def setEnd(self):
@@ -330,7 +360,7 @@ class Tile:
         except AttributeError:
             pass
 
-        self.changeType(newType = tileTypes.END)
+        self.changeType(newType=tileTypes.END)
         self.maze.end = self
 
     def write(self, content):
@@ -339,7 +369,10 @@ class Tile:
         """
         try:
             self.parent.delete(self.label)
-        except:
+        except ValueError:
             pass
         finally:
-            self.label = self.parent.create_text(self.xPos + (self.size / 2), self.yPos + (self.size / 2), text = content, width = self.size)
+            self.label = self.parent.create_text(self.xPos + (self.size / 2),
+                                                 self.yPos + (self.size / 2),
+                                                 text=content,
+                                                 width=self.size)

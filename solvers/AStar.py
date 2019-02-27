@@ -1,6 +1,7 @@
-from solvers.solver import SolverTemplate, Stack
+from solvers.solver import SolverTemplate
 import tkinter.messagebox as mb
 import math
+
 
 class Solver(SolverTemplate):
     def __init__(self, *args, **kwargs):
@@ -21,7 +22,8 @@ class Solver(SolverTemplate):
                 self.cost.update({tile: float("inf")})
                 self.dist.update({tile: float("inf")})
                 self.previous.update({tile: None})
-                tile.findNeighbours(distance = 1, blockVisited = True, blockWalls = True)
+                tile.findNeighbours(distance=1, blockVisited=True,
+                                    blockWalls=True)
                 self.tiles.append(tile)
 
         self.dist[self.start] = 0
@@ -29,9 +31,9 @@ class Solver(SolverTemplate):
 
         # If we are autorunning, call the step function.
         if self.autorun:
-                self.maze.parent.after(100, self.step)
+            self.maze.parent.after(100, self.step)
 
-    def step(self, force = False):
+    def step(self, force=False):
         if (not self.autorun and not force):
             return
         if len(self.tiles) > 0:
@@ -40,9 +42,9 @@ class Solver(SolverTemplate):
             try:
                 self.tiles.remove(tile)
             except ValueError:
-                    mb.showerror("ERROR", "Cannot solve maze")
-                    self.maze.solving = False
-                    return
+                mb.showerror("ERROR", "Cannot solve maze")
+                self.maze.solving = False
+                return
 
             tileNeighbours = tile.neighbours
 
@@ -63,11 +65,13 @@ class Solver(SolverTemplate):
                 if neighbour.visitCount > 0:
                     continue
 
-                alt = self.dist[tile] + self.distance(tile, neighbour) + (self.distance(tile, self.end) * 2)
+                alt = self.dist[tile] + self.distance(tile, neighbour) + \
+                    (self.distance(tile, self.end) * 2)
                 neighbour.write(int(alt))
                 if alt < self.cost[neighbour]:
                     neighbour.setVisited()
-                    self.dist[neighbour] = self.dist[tile] + self.distance(tile, neighbour)
+                    self.dist[neighbour] = self.dist[tile] + \
+                        self.distance(tile, neighbour)
                     self.previous[neighbour] = tile
                     self.cost[neighbour] = alt
 
