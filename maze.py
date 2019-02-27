@@ -369,7 +369,7 @@ class Tile:
         """
         try:
             self.parent.delete(self.label)
-        except ValueError:
+        except AttributeError:
             pass
         finally:
             self.label = self.parent.create_text(self.xPos + (self.size / 2),
