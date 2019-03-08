@@ -1,4 +1,5 @@
 import tkinter as tk
+from utils import getResourcePath
 
 
 class HelpMenu(tk.Toplevel):
@@ -30,11 +31,14 @@ class HelpMenu(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.closeWindow)
 
     def createWidgets(self):
-        tk.Button(self, text="Forward",
-                  command=self.nextPage,
-                  height=1).grid(row=0, column=2)
-        tk.Button(self, text="Back",
+        self.backImage = tk.PhotoImage(
+            file=getResourcePath("assets/help/back.png")).subsample(13, 13)
+        tk.Button(self, image=self.backImage, borderwidth=0,
                   command=self.previousPage).grid(row=0, column=0)
+        self.nextImage = tk.PhotoImage(
+            file=getResourcePath("assets/help/next.png")).subsample(13, 13)
+        tk.Button(self, image=self.nextImage, borderwidth=0,
+                  command=self.nextPage).grid(row=0, column=2)
 
     def changeFrame(self, newFrame):
         """
@@ -67,64 +71,70 @@ class HelpMenu(tk.Toplevel):
         self.destroy()
 
 
-class Page1(tk.Frame):
+class Page(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
         self.createWidgets()
 
-    def createWidgets(self):
-        tk.Label(self, text="Hello from page 1").pack()
+    def addPhoto(self, path):
+        self.image = tk.PhotoImage(
+            file=getResourcePath(path)).zoom(2, 2).subsample(5, 5)
+        self.title = tk.Label(self, image=self.image)
+        self.title.grid(row=0, column=0, pady=10)
+
+    def addDescription(self, text):
+        self.desc = tk.Label(self, text=text)
+        self.desc.grid(row=10, column=0)
 
 
-class Page2(tk.Frame):
+class Page1(Page):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.createWidgets()
-
     def createWidgets(self):
-        tk.Label(self, text="Hello from page 2").pack()
+        self.addPhoto("assets/help/1.png")
+        self.addDescription("Hello from page 1")
 
 
-class Page3(tk.Frame):
+class Page2(Page):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.createWidgets()
-
     def createWidgets(self):
-        tk.Label(self, text="Hello from page 3").pack()
+        self.addDescription("Hello from page 2")
 
 
-class Page4(tk.Frame):
+class Page3(Page):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.createWidgets()
-
     def createWidgets(self):
-        tk.Label(self, text="Hello from page 4").pack()
+        self.addDescription("Hello from page 3")
 
 
-class Page5(tk.Frame):
+class Page4(Page):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.createWidgets()
-
     def createWidgets(self):
-        tk.Label(self, text="Hello from page 5").pack()
+        self.addDescription("Hello from page 4")
 
 
-class Page6(tk.Frame):
+class Page5(Page):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.createWidgets()
+    def createWidgets(self):
+        self.addDescription("Hello from page 5")
+
+
+class Page6(Page):
+    def __init__(self, parent):
+        super().__init__(parent)
 
     def createWidgets(self):
-        tk.Label(self, text="Hello from page 6").pack()
+        self.addDescription("Hello from page 6")
 
 
 if __name__ == "__main__":

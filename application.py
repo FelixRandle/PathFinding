@@ -15,7 +15,7 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 # os used for handling directories.
 import os
 # sys used for getting resource paths for packed program.
-import sys
+from utils import getResourcePath
 
 """
 BUGS:
@@ -31,20 +31,11 @@ TODO:
 """
 
 
-def getResourcePath(relativePath):
-    """
-    Function used to get a resources path when using an executable file.
-    """
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relativePath)
-    return os.path.join(os.path.abspath("."), relativePath)
-
-
 class Application(tk.Tk):
-    """
-    Class used to house the GUI aspects of the application.
-    """
+    """Class used to house the GUI aspects of the application."""
+
     def __init__(self, *args, **kwargs):
+        """Initialise Application class."""
         super().__init__()
 
         # Set the Title and icon of our application.
@@ -113,9 +104,7 @@ class Application(tk.Tk):
         self.bind("<Key>", self.keyPress)
 
     def keyPress(self, event):
-        """
-        Method for handling key presses on the main menu.
-        """
+        """Handle key presses on the main menu."""
         if event.keycode == self.EESequence[self.EEPos]:
             self.EEPos += 1
         else:
@@ -128,8 +117,8 @@ class Application(tk.Tk):
 
     def loadStyles(self):
         """
-        Method for loading the different styles needed for labels,
-        buttons as well as loading in a custom font.
+        Load the different styles needed for labels, buttons as well as
+        loading in a custom font.
         """
         # Load in a custom font
         loadFont("assets/fonts/AlegreyaSansSC-Regular.ttf")
@@ -259,7 +248,8 @@ class Application(tk.Tk):
 
     def loadMazeFile(self):
         """
-        Method used to load a maze object from a binary file.
+        Load a maze object from a binary file.
+
         Displays a dialog box for user to select file path and
         translates object.
         Arguments:

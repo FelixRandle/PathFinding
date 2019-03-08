@@ -17,6 +17,8 @@ class Solver(SolverTemplate):
         self.previous = {}
         self.tiles = []
 
+        self.start.setVisited()
+
         for tileX in self.maze.tiles:
             for tile in tileX:
                 self.cost.update({tile: float("inf")})
