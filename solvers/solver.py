@@ -29,16 +29,17 @@ class SolverTemplate:
         # start the solver.
         if (self.start is None) or (self.end is None):
             self.maze.solving = False
-            mb.showerror("ERROR", "Could not find either start or end of maze, \
-                please ensure both of these are placed on the screen.")
+            mb.showerror("ERROR", "Could not find either start or end of " +
+                                  "maze, please ensure both of these are " +
+                                  "placed on the screen.")
             self.parent.changeMenu(None)
 
     def autorun(self):
         pass
 
     def step(self):
-        print("Current Solver not functional. Please ensure that your stepping \
-            function is called 'step' so it overrides the base function.")
+        print("Current Solver not functional. Please ensure that your " +
+              "function is called 'step' so it overrides the base function.")
 
     def getStack(self):
         return self.stack

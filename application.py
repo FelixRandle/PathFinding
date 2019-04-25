@@ -2,7 +2,6 @@
 # Internal Imports
 import maze
 import tkColourPicker
-from customFont import loadFont
 from database import Database
 from help import HelpMenu
 
@@ -15,7 +14,7 @@ from tkinter.filedialog import asksaveasfilename, askopenfilename
 # os used for handling directories.
 import os
 # sys used for getting resource paths for packed program.
-from utils import getResourcePath
+from utils import getResourcePath, loadFont
 
 """
 BUGS:
@@ -268,9 +267,9 @@ class Application(tk.Tk):
             self.changeFrame(MazeScreen)
             self.title("PathFinding | {}".format(filePath))
         elif filePath != "":
-            mb.showerror(self.Title, "That is not a valid filename.\n \
-                                      Please ensure the filePath fits \
-                                      the form of '*.maz'")
+            mb.showerror(self.Title, "That is not a valid filename.\n " +
+                                     "Please ensure the filePath fits " +
+                                     "the form of '*.maz'")
 
     def loadMaze(self, size=51):
         """
@@ -309,8 +308,8 @@ class Application(tk.Tk):
         elif algorithm == "Blank Maze":
             from generators.blankmaze import Generator
         else:
-            mb.showerror("ERROR", "Error loading generator, \
-                                   please choose another generator")
+            mb.showerror("ERROR", "Error loading generator, " +
+                                  "please choose another generator")
             return
 
         # Load in the size of the maze from settings
@@ -348,8 +347,8 @@ class Application(tk.Tk):
         elif algorithm == "A*":
             from solvers.AStar import Solver
         else:
-            mb.showerror("ERROR", "Error loading solver, \
-                                   please choose another solver")
+            mb.showerror("ERROR", "Error loading solver, " +
+                                  "please choose another solver")
             return
 
         self.changeMenu(SolverMenu)
@@ -364,8 +363,8 @@ class Application(tk.Tk):
 
             self.frames[MazeScreen].editMode = True
         else:
-            mb.showerror(self.Title, "Cannot enter edit mode whilst \
-                                      maze is being solved.")
+            mb.showerror(self.Title, "Cannot enter edit mode whilst " +
+                                     "maze is being solved.")
 
 
 class HomeScreen(tk.Frame):
@@ -402,11 +401,11 @@ class HomeScreen(tk.Frame):
             command=lambda: self.parent.changeMenu(MenuList), borderwidth=0)
         self.settingsButton.grid(row=0, column=0, sticky="NE", pady=5, padx=5)
 
-        self.helpImage = tk.PhotoImage(
-            file=getResourcePath("assets/home/help.png"))
-        self.helpButton = tk.Button(self, image=self.helpImage,
-                                    command=self.showHelp, borderwidth=0)
-        self.helpButton.grid(row=0, column=0, sticky="NW", pady=5, padx=5)
+        # self.helpImage = tk.PhotoImage(
+        #    file=getResourcePath("assets/home/help.png"))
+        # self.helpButton = tk.Button(self, image=self.helpImage,
+        #                            command=self.showHelp, borderwidth=0)
+        # self.helpButton.grid(row=0, column=0, sticky="NW", pady=5, padx=5)
 
         self.generateImage = tk.PhotoImage(
             file=getResourcePath("assets/home/generate.png"))

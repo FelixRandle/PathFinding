@@ -6,6 +6,10 @@ import math
 class Solver(SolverTemplate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Check if setup failed
+        if not self.maze.solving:
+            return
+            
         # Set the starting tile to the mazes start.
         self.currentTile = self.start
 
