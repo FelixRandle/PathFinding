@@ -80,12 +80,16 @@ class Page(tk.Frame):
     def addPhoto(self, path):
         self.image = tk.PhotoImage(
             file=getResourcePath(path)).zoom(2, 2).subsample(5, 5)
-        self.title = tk.Label(self, image=self.image)
-        self.title.grid(row=0, column=0, pady=10)
+        self.imageShown = tk.Label(self, image=self.image)
+        self.imageShown.grid(row=0, column=0, pady=10)
 
     def addDescription(self, text):
         self.desc = tk.Label(self, text=text)
-        self.desc.grid(row=10, column=0)
+        self.desc.grid(row=10, column=0, pady=10)
+
+    def addTitle(self, text):
+        self.title = tk.Label(self, text=text, font=(12,))
+        self.title.grid(row=5, column=0, pady=10)
 
 
 class Page1(Page):
@@ -93,8 +97,8 @@ class Page1(Page):
         super().__init__(parent)
 
     def createWidgets(self):
-        self.addPhoto("assets/help/1.png")
-        self.addDescription("Hello from page 1")
+        self.addTitle("Welcome to the PathFinding Visualiser")
+        self.addDescription("Please read the help guide thoroughly\nfor the best results")
 
 
 class Page2(Page):

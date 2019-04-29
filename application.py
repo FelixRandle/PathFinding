@@ -401,11 +401,11 @@ class HomeScreen(tk.Frame):
             command=lambda: self.parent.changeMenu(MenuList), borderwidth=0)
         self.settingsButton.grid(row=0, column=0, sticky="NE", pady=5, padx=5)
 
-        # self.helpImage = tk.PhotoImage(
-        #    file=getResourcePath("assets/home/help.png"))
-        # self.helpButton = tk.Button(self, image=self.helpImage,
-        #                            command=self.showHelp, borderwidth=0)
-        # self.helpButton.grid(row=0, column=0, sticky="NW", pady=5, padx=5)
+        self.helpImage = tk.PhotoImage(
+            file=getResourcePath("assets/home/help.png"))
+        self.helpButton = tk.Button(self, image=self.helpImage,
+                                    command=self.showHelp, borderwidth=0)
+        self.helpButton.grid(row=0, column=0, sticky="NW", pady=5, padx=5)
 
         self.generateImage = tk.PhotoImage(
             file=getResourcePath("assets/home/generate.png"))

@@ -7,6 +7,7 @@ assetData = [('assets/fonts', 'assets/fonts/'),
               ('assets/settings', 'assets/settings/'),
               ('assets/solving', 'assets/solving/'),
               ('assets/speeds', 'assets/speeds/'),
+              ('assets/help', 'assets/help/'),
               ('assets/maze.ico', 'assets/maze.ico'),
               ('userData.db', '.')]
 
